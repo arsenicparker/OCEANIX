@@ -80,8 +80,10 @@ pip install -r requirements.txt
 - [x] Milestone M5: FastAPI Service & Schemas (Completed).
 - [x] Milestone M6: Frontend & Interactive Leaflet Map (Completed).
 - [x] Design Diagram added.
-- [ ] Milestone M7: Integration, QA & End-to-End Testing.
-- [ ] Milestone M8: Final Deliverables & Demonstration.
+- [x] Milestone M7: Integration, QA & End-to-End Testing (Completed).
+- [x] Milestone M8: Final Deliverables & Demonstration (Completed).
+
+---
 
 ---
 

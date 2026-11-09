@@ -1,0 +1,12 @@
+version: "3.8"
+services:
+  oceanix:
+    build: .
+    image: oceanix:latest
+    container_name: oceanix_app
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    restart: unless-stopped
+
