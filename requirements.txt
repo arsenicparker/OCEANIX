@@ -1,0 +1,13 @@
+# OCEANIX Core Dependencies
+numpy>=2.0.0
+pandas>=2.0.0
+scipy>=1.10.0
+scikit-learn>=1.4.0
+joblib>=1.4.0
+fastapi>=0.110.0
+uvicorn>=0.28.0
+pydantic>=2.6.0
+openpyxl>=3.1.0
+xlrd>=2.0.0
+pytest>=8.0.0
+requests>=2.30.0
