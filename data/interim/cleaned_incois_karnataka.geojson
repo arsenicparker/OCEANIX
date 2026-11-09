@@ -1,0 +1,510 @@
+{
+  "type": "FeatureCollection",
+  "name": "INCOIS_Karnataka_PFZ_Advisory",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          73.620833,
+          14.721667
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-01",
+        "landing_centre": "Belekeri",
+        "direction": "NW",
+        "bearing_deg": 271.0,
+        "distance_km": "67.0-72.0",
+        "depth_m": "56.0-61.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          73.699722,
+          14.709167
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-02",
+        "landing_centre": "Sadasguvgarg",
+        "direction": "SW",
+        "bearing_deg": 252.0,
+        "distance_km": "47.0-52.0",
+        "depth_m": "62.0-67.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          73.852222,
+          14.687778
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-03",
+        "landing_centre": "Karwar",
+        "direction": "SW",
+        "bearing_deg": 236.0,
+        "distance_km": "25.0-30.0",
+        "depth_m": "46.0-51.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          73.773889,
+          14.68
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-04",
+        "landing_centre": "Majali",
+        "direction": "SW",
+        "bearing_deg": 236.0,
+        "distance_km": "40.0-45.0",
+        "depth_m": "58.0-63.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          73.5925,
+          14.468333
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-05",
+        "landing_centre": "Gangavali",
+        "direction": "SW",
+        "bearing_deg": 260.0,
+        "distance_km": "75.0-80.0",
+        "depth_m": "68.0-73.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          73.968056,
+          14.453611
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-06",
+        "landing_centre": "Navayatkere",
+        "direction": "NW",
+        "bearing_deg": 298.0,
+        "distance_km": "59.0-64.0",
+        "depth_m": "46.0-51.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          73.898889,
+          14.438889
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-07",
+        "landing_centre": "Kasarkod",
+        "direction": "NW",
+        "bearing_deg": 290.0,
+        "distance_km": "60.0-65.0",
+        "depth_m": "52.0-57.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          73.836667,
+          14.408056
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-08",
+        "landing_centre": "Honavar",
+        "direction": "NW",
+        "bearing_deg": 283.0,
+        "distance_km": "65.0-70.0",
+        "depth_m": "57.0-62.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          73.535278,
+          14.407778
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-09",
+        "landing_centre": "Tadri",
+        "direction": "SW",
+        "bearing_deg": 262.0,
+        "distance_km": "86.0-91.0",
+        "depth_m": "65.0-70.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          73.797222,
+          14.349444
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-10",
+        "landing_centre": "Karki",
+        "direction": "NW",
+        "bearing_deg": 273.0,
+        "distance_km": "65.0-70.0",
+        "depth_m": "61.0-66.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          73.481944,
+          14.345278
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-11",
+        "landing_centre": "Kumta Pt",
+        "direction": "SW",
+        "bearing_deg": 265.0,
+        "distance_km": "96.0-101.0",
+        "depth_m": "107.0-112.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          73.5225,
+          14.277778
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-12",
+        "landing_centre": "Dhareshvar",
+        "direction": "SW",
+        "bearing_deg": 264.0,
+        "distance_km": "94.0-99.0",
+        "depth_m": "71.0-76.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          74.301389,
+          13.743056
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-13",
+        "landing_centre": "Baindur",
+        "direction": "SW",
+        "bearing_deg": 247.0,
+        "distance_km": "34.0-39.0",
+        "depth_m": "38.0-43.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          74.2925,
+          13.670278
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-14",
+        "landing_centre": "Navunda",
+        "direction": "SW",
+        "bearing_deg": 256.0,
+        "distance_km": "36.0-41.0",
+        "depth_m": "38.0-43.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          74.048889,
+          13.618889
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-15",
+        "landing_centre": "Bhatkal",
+        "direction": "SW",
+        "bearing_deg": 233.0,
+        "distance_km": "63.0-68.0",
+        "depth_m": "53.0-58.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          74.273333,
+          13.599444
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-16",
+        "landing_centre": "Hangarkatta",
+        "direction": "NW",
+        "bearing_deg": 291.0,
+        "distance_km": "48.0-53.0",
+        "depth_m": "43.0-48.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          74.062778,
+          13.553056
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-17",
+        "landing_centre": "Gangoli",
+        "direction": "SW",
+        "bearing_deg": 260.0,
+        "distance_km": "63.0-68.0",
+        "depth_m": "53.0-58.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          74.290278,
+          13.529444
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-18",
+        "landing_centre": "Shirali",
+        "direction": "SW",
+        "bearing_deg": 203.0,
+        "distance_km": "57.0-62.0",
+        "depth_m": "42.0-47.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          74.062778,
+          13.485556
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-19",
+        "landing_centre": "Coondapoor (gangoli)",
+        "direction": "SW",
+        "bearing_deg": 257.0,
+        "distance_km": "65.0-70.0",
+        "depth_m": "51.0-56.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          74.050556,
+          13.42
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-20",
+        "landing_centre": "Kota",
+        "direction": "SW",
+        "bearing_deg": 262.0,
+        "distance_km": "67.0-72.0",
+        "depth_m": "54.0-59.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          74.450278,
+          13.363333
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-21",
+        "landing_centre": "Malpe",
+        "direction": "NW",
+        "bearing_deg": 275.0,
+        "distance_km": "23.0-28.0",
+        "depth_m": "35.0-40.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          74.490833,
+          13.309444
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-22",
+        "landing_centre": "Udiyavara",
+        "direction": "NW",
+        "bearing_deg": 272.0,
+        "distance_km": "23.0-28.0",
+        "depth_m": "32.0-37.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          74.508611,
+          13.244167
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-23",
+        "landing_centre": "Kapu",
+        "direction": "NW",
+        "bearing_deg": 276.0,
+        "distance_km": "23.0-28.0",
+        "depth_m": "33.0-38.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          74.515833,
+          13.176667
+        ]
+      },
+      "properties": {
+        "advisory_id": "INCOIS-KAR-20261004-24",
+        "landing_centre": "Mulki",
+        "direction": "NW",
+        "bearing_deg": 290.0,
+        "distance_km": "28.0-33.0",
+        "depth_m": "35.0-40.0",
+        "forecast_valid_from": "2026-10-04",
+        "forecast_valid_to": "2026-10-05",
+        "source": "INCOIS Operational PFZ Advisory"
+      }
+    }
+  ]
+}

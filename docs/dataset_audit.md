@@ -101,3 +101,4 @@ Evaluated across the 19,866 observed fishery records:
 1. **Route B (NOAA Accession 0306675) is awarded GO status** for machine learning pipeline development. It satisfies all 10 criteria of the blueprint audit checklist, provides a genuine empirical target (`SKJ`), and contains 15 years of matched Copernicus Marine environmental covariates across 19,866 observations.
 2. **Route A (INCOIS Karnataka PFZ) is awarded CONDITIONAL-GO**: Classified as **NO-GO for standalone model training**, but **GO for operational advisory parsing, API serving, and Leaflet map rendering**.
 3. **Execution Plan**: The machine learning model will be trained on Route B data with explicit labeling that it represents Western Indian Ocean Skipjack Tuna. The web prototype will present predictions for this validated model, while providing the capability to view historical INCOIS coastal advisories with distinct markers and disclaimers.
+

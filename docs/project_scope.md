@@ -48,3 +48,4 @@ To adhere to the Blueprint's ethical guidelines (Section 5 & 18):
 - No heavy deep neural networks or multi-agent LLM systems where simple tree ensembles provide clear tabular interpretability.
 - No user accounts, billing, tracking, or mobile app stores.
 - No claims of navigational safety, sea state hazard assessment, or maritime routing.
+

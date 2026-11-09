@@ -1,0 +1,85 @@
+{
+  "dataset_name": "NOAA Accession 0306675 Clean Fishery-Environment Table",
+  "total_records": 19866,
+  "raw_catch_rows": 66520,
+  "raw_env_rows": 66520,
+  "unobserved_grid_projection_cells_excluded": 46654,
+  "matched_observed_records": 19866,
+  "train_end_year": 2015,
+  "splits": {
+    "train": {
+      "count": 13599,
+      "percentage": 68.45,
+      "years": [
+        2005,
+        2006,
+        2007,
+        2008,
+        2009,
+        2010,
+        2011,
+        2012,
+        2013,
+        2014,
+        2015
+      ],
+      "date_range": [
+        "2005-01-01",
+        "2015-12-01"
+      ]
+    },
+    "test": {
+      "count": 6267,
+      "percentage": 31.55,
+      "years": [
+        2016,
+        2017,
+        2018,
+        2019
+      ],
+      "date_range": [
+        "2016-01-01",
+        "2019-12-01"
+      ]
+    }
+  },
+  "target_summary": {
+    "target_field": "skipjack_catch_biomass",
+    "unit": "Metric Tons (MT)",
+    "min": 0.19,
+    "median": 26.9675,
+    "mean": 46.49462422916077,
+    "max": 1395.19,
+    "std": 58.45832555391889
+  },
+  "feature_missingness_by_split": {
+    "train": {
+      "ph": 595,
+      "nppv": 3283,
+      "phyc": 595,
+      "chl": 595,
+      "o2": 595,
+      "so": 595,
+      "mlotst": 595,
+      "uo": 595,
+      "vo": 595,
+      "thetao": 595,
+      "bottomT": 595,
+      "zos": 595
+    },
+    "test": {
+      "ph": 0,
+      "nppv": 0,
+      "phyc": 0,
+      "chl": 0,
+      "o2": 0,
+      "so": 0,
+      "mlotst": 0,
+      "uo": 0,
+      "vo": 0,
+      "thetao": 0,
+      "bottomT": 0,
+      "zos": 0
+    }
+  }
+}

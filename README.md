@@ -73,11 +73,12 @@ pip install -r requirements.txt
 
 ## 4. Current Status
 - [x] Repository structure and initial configuration established.
-- [ ] Milestone M1: Data Audit & Source Verification (In Progress).
-- [ ] Milestone M2: Dataset Preparation & Preprocessing.
+- [x] Milestone M1: Data Audit & Source Verification (Completed).
+- [x] Milestone M2: Dataset Preparation & Preprocessing (Completed).
 - [ ] Milestone M3: Machine Learning Pipeline & Training.
 - [ ] Milestone M4: Model Evaluation & Limitations Reporting.
 - [ ] Milestone M5: FastAPI Service & Schemas.
 - [ ] Milestone M6: Frontend & Interactive Leaflet Map.
 - [ ] Milestone M7: Integration, QA & End-to-End Testing.
 - [ ] Milestone M8: Final Deliverables & Demonstration.
+

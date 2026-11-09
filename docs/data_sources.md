@@ -86,3 +86,25 @@ This registry catalogs all raw datasets acquired for OCEANIX. Each dataset is pr
 1. Files in `data/raw/` are **read-only** and never edited in-place.
 2. Checksums must be verified prior to running data preparation pipelines.
 3. Cleaned datasets are written to `data/interim/` and `data/processed/`.
+
+---
+
+## 4. Prepared & Model-Ready Tables (Milestone M2)
+
+### Processed Output 1: `data/processed/clean_fishery_env.csv`
+- **Source**: Inner join of `Catch_data.txt` and `Environmental_data.txt` with unobserved background grid cells excluded.
+- **Row Count**: 19,866 observed fishery catch events.
+- **Columns**: 20 (Observation metadata, spatio-temporal coordinates, target catch biomass, split flag, and 12 environmental features).
+- **Target Variable**: `skipjack_catch_biomass` (Metric Tons). Range: 0.19 to 1395.19 MT (Median: 26.97 MT).
+- **Temporal Partitions**:
+  - `train` split (2005–2015): 13,599 rows (68.45%).
+  - `test` holdout split (2016–2019): 6,267 rows (31.55%).
+- **Metadata Log**: `data/processed/split_metadata.json`.
+
+### Interim Output 2: `data/interim/cleaned_incois_karnataka.csv` & `.geojson`
+- **Source**: Deterministic extraction from `PfzForecast_KARNATAKA.xls`.
+- **Row Count**: 24 operational advisory points.
+- **Coordinates**: Converted from Degree-Minute-Second (DMS) to Decimal Degrees (DD).
+- **Format**: CSV table and RFC 7946 GeoJSON FeatureCollection for Leaflet map overlay.
+
+
