@@ -77,7 +77,8 @@ pip install -r requirements.txt
 - [x] Milestone M2: Dataset Preparation & Preprocessing (Completed).
 - [x] Milestone M3: Machine Learning Pipeline & Training (Completed).
 - [x] Milestone M4: Model Evaluation & Limitations Reporting (Completed).
-- [ ] Milestone M5: FastAPI Service & Schemas.
+- [x] Milestone M5: FastAPI Service & Schemas (Completed).
+- [ ] Milestone M6: Frontend & Interactive Leaflet Map.
 - [ ] Milestone M6: Frontend & Interactive Leaflet Map.
 - [ ] Milestone M7: Integration, QA & End-to-End Testing.
 - [ ] Milestone M8: Final Deliverables & Demonstration.

@@ -35,3 +35,4 @@
 1. **Baseline Model**: `DummyRegressor(strategy='median')` provides the required benchmark.
 2. **Primary Candidate**: `RandomForestRegressor(n_estimators=100, max_depth=12, min_samples_leaf=5)` to capture nonlinear interactions between physical variables and tuna aggregation.
 3. **Acceptance Threshold**: The primary candidate must outperform the baseline on held-out test MAE and RMSE before deployment to the API.
+

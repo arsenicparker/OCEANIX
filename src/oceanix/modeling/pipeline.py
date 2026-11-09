@@ -127,3 +127,4 @@ def extract_feature_importances(
     # Sort descending
     results.sort(key=lambda x: x["importance"], reverse=True)
     return results
+

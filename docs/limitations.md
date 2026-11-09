@@ -32,3 +32,4 @@ OCEANIX is an educational decision-support engineering prototype. It is **not** 
 ## 3. Ethical Guardrails & Responsible Use
 1. **Safety at Sea**: OCEANIX does **not** evaluate sea-state hazards, wave height, swell, wind speed, or storm warnings. Fishers must always consult official IMD/INCOIS ocean state forecasts and port advisories before putting to sea.
 2. **Attribution & Transparency**: Every map layer and API response explicitly differentiates between observed government advisories (INCOIS) and machine-learned estimates (OCEANIX model), displaying model version, date context, and uncertainty caveats.
+

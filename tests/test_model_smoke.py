@@ -68,3 +68,4 @@ def test_batch_inference_on_processed_data():
     assert len(preds) == 20
     assert (preds >= 0.0).all()
     assert not np.isnan(preds).any()
+
