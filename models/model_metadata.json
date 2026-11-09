@@ -1,0 +1,131 @@
+{
+  "model_name": "OCEANIX Skipjack Tuna Suitability Regressor",
+  "model_version": "1.0.0",
+  "algorithm": "RandomForestRegressor (n_estimators=100, max_depth=12, min_samples_leaf=5) with TransformedTargetRegressor(log1p)",
+  "target_variable": "skipjack_catch_biomass",
+  "target_units": "Metric Tons (MT)",
+  "features": [
+    "longitude",
+    "latitude",
+    "month",
+    "thetao",
+    "chl",
+    "so",
+    "o2",
+    "mlotst",
+    "uo",
+    "vo",
+    "ph",
+    "zos",
+    "bottomT",
+    "phyc",
+    "nppv"
+  ],
+  "study_area": "Western Indian Ocean (WIO) [38.75\u00b0E - 79.75\u00b0E, -14.75\u00b0S - 14.75\u00b0N]",
+  "dataset_split": {
+    "strategy": "Chronological holdout split",
+    "train_samples": 13599,
+    "train_years": "2005-2015",
+    "test_samples": 6267,
+    "test_years": "2016-2019"
+  },
+  "metrics_held_out_test_set": {
+    "baseline_dummy_median": {
+      "mae": 37.3332,
+      "rmse": 69.002,
+      "r2": -0.1811
+    },
+    "primary_random_forest": {
+      "mae": 35.8147,
+      "rmse": 65.8282,
+      "r2": -0.075
+    },
+    "improvement": {
+      "mae_reduction_pct": 4.07,
+      "rmse_reduction_pct": 4.6,
+      "r2_gain": 0.1061
+    }
+  },
+  "feature_importances": [
+    {
+      "feature": "thetao",
+      "importance": 0.1688,
+      "percentage": 16.88
+    },
+    {
+      "feature": "month",
+      "importance": 0.0966,
+      "percentage": 9.66
+    },
+    {
+      "feature": "chl",
+      "importance": 0.0787,
+      "percentage": 7.87
+    },
+    {
+      "feature": "mlotst",
+      "importance": 0.0783,
+      "percentage": 7.83
+    },
+    {
+      "feature": "zos",
+      "importance": 0.0771,
+      "percentage": 7.71
+    },
+    {
+      "feature": "latitude",
+      "importance": 0.063,
+      "percentage": 6.3
+    },
+    {
+      "feature": "so",
+      "importance": 0.0626,
+      "percentage": 6.26
+    },
+    {
+      "feature": "bottomT",
+      "importance": 0.0531,
+      "percentage": 5.31
+    },
+    {
+      "feature": "phyc",
+      "importance": 0.0502,
+      "percentage": 5.02
+    },
+    {
+      "feature": "o2",
+      "importance": 0.0495,
+      "percentage": 4.95
+    },
+    {
+      "feature": "uo",
+      "importance": 0.0489,
+      "percentage": 4.89
+    },
+    {
+      "feature": "ph",
+      "importance": 0.0461,
+      "percentage": 4.61
+    },
+    {
+      "feature": "vo",
+      "importance": 0.0456,
+      "percentage": 4.56
+    },
+    {
+      "feature": "longitude",
+      "importance": 0.0421,
+      "percentage": 4.21
+    },
+    {
+      "feature": "nppv",
+      "importance": 0.0394,
+      "percentage": 3.94
+    }
+  ],
+  "limitations": [
+    "Model estimates potential catch biomass based on historical Western Indian Ocean skipjack tuna data (2005-2019).",
+    "Not an operational navigation tool or guarantee of actual fish aggregation.",
+    "Predictions are valid within the documented Western Indian Ocean boundaries and do not extrapolate to Karnataka inshore coastal waters."
+  ]
+}
