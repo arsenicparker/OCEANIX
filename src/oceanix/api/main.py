@@ -14,6 +14,7 @@ from typing import Any, Dict, Optional
 
 import joblib
 import pandas as pd
+from fastapi.staticfiles import StaticFiles
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -213,3 +214,10 @@ def predict_suitability(request: PredictionRequest) -> PredictionResponse:
             "Does not constitute official marine advice, sea navigation guidance, or a guarantee of fish catch."
         ),
     )
+
+
+# Mount static frontend application
+FRONTEND_DIR = ROOT_DIR / "frontend"
+if FRONTEND_DIR.exists():
+    app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="frontend")
+

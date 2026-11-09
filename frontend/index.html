@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OCEANIX | AI-Based Marine Intelligence</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <!-- App CSS -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="dark-theme">
+
+    <!-- Top Navigation Bar -->
+    <header class="app-header">
+        <div class="header-container">
+            <div class="brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M2 12c3-4 6-4 8 0s5 4 8 0 4-2 4-2" />
+                        <path d="M2 17c3-4 6-4 8 0s5 4 8 0 4-2 4-2" />
+                        <circle cx="12" cy="7" r="3" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="brand-title">OCEANIX</h1>
+                    <span class="brand-subtitle">AI Marine Intelligence & Decision Support</span>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <div class="status-indicator" id="apiStatusBadge">
+                    <span class="status-dot"></span>
+                    <span class="status-text" id="apiStatusText">Connecting to API...</span>
+                </div>
+                <button class="btn-ghost" id="openAboutModalBtn">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                    About & Limitations
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Workspace Container -->
+    <main class="main-layout">
+        
+        <!-- Left Sidebar: Controls & Input Studio -->
+        <aside class="sidebar-panel">
+            <div class="panel-card intro-card">
+                <div class="card-badge">Decision Support Prototype</div>
+                <h2>Fishing-Zone Suitability Studio</h2>
+                <p class="text-muted">
+                    Estimate Skipjack tuna habitat suitability in the Western Indian Ocean based on historical physical oceanography (2005–2019) or inspect verified INCOIS coastal advisories.
+                </p>
+                <div class="notice-pill">
+                    ⚠️ Educational prototype. Not an official catch guarantee or navigational tool.
+                </div>
+            </div>
+
+            <!-- Coordinate & Time Selection Form -->
+            <form id="predictionForm" class="panel-card form-card">
+                <div class="card-header">
+                    <h3>1. Query Location & Season</h3>
+                    <button type="button" class="btn-link" id="resetFormBtn">Reset</button>
+                </div>
+
+                <!-- Preset Quick Select -->
+                <div class="form-group">
+                    <label for="presetSelect">Western Indian Ocean Sectors</label>
+                    <select id="presetSelect" class="form-control">
+                        <option value="">-- Choose a Preset Sector --</option>
+                        <option value="52.25,-2.25,7">Seychelles Basin (52.25°E, -2.25°S - July)</option>
+                        <option value="55.25,4.75,1">Somali Basin (55.25°E, 4.75°N - January)</option>
+                        <option value="44.25,-3.25,4">East African Shelf (44.25°E, -3.25°S - April)</option>
+                        <option value="59.25,-1.25,10">Chagos Ridge Transition (59.25°E, -1.25°S - Oct)</option>
+                        <option value="47.25,-7.75,11">Mozambique Channel North (47.25°E, -7.75°S - Nov)</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group col-half">
+                        <label for="longitudeInput">Longitude (°E) <span class="required">*</span></label>
+                        <input type="number" id="longitudeInput" class="form-control" step="0.25" min="38.0" max="80.0" value="52.25" required>
+                        <small class="hint">38.0°E to 80.0°E</small>
+                    </div>
+                    <div class="form-group col-half">
+                        <label for="latitudeInput">Latitude (°N/S) <span class="required">*</span></label>
+                        <input type="number" id="latitudeInput" class="form-control" step="0.25" min="-15.0" max="15.0" value="-2.25" required>
+                        <small class="hint">-15.0°S to +15.0°N</small>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="monthInput">Observation Month <span class="required">*</span></label>
+                    <select id="monthInput" class="form-control" required>
+                        <option value="1">January (NE Monsoon)</option>
+                        <option value="2">February (NE Monsoon)</option>
+                        <option value="3">March (Spring Transition)</option>
+                        <option value="4">April (Spring Transition)</option>
+                        <option value="5">May (SW Monsoon onset)</option>
+                        <option value="6">June (SW Monsoon)</option>
+                        <option value="7" selected>July (SW Monsoon peak)</option>
+                        <option value="8">August (SW Monsoon)</option>
+                        <option value="9">September (SW Monsoon retreat)</option>
+                        <option value="10">October (Fall Transition)</option>
+                        <option value="11">November (Fall Transition)</option>
+                        <option value="12">December (NE Monsoon)</option>
+                    </select>
+                </div>
+
+                <!-- Advanced Oceanographic Parameters (Accordion) -->
+                <details class="advanced-accordion">
+                    <summary class="accordion-header">
+                        <span>Advanced Oceanographic Covariates</span>
+                        <span class="accordion-badge">Optional</span>
+                    </summary>
+                    <div class="accordion-content">
+                        <p class="accordion-desc">Omitted fields use training median values automatically imputed by the pipeline.</p>
+                        
+                        <div class="form-row">
+                            <div class="form-group col-half">
+                                <label for="sstInput">SST (°C)</label>
+                                <input type="number" id="sstInput" class="form-control" step="0.1" min="15.0" max="35.0" placeholder="e.g. 27.8">
+                            </div>
+                            <div class="form-group col-half">
+                                <label for="salinityInput">Salinity (PSU)</label>
+                                <input type="number" id="salinityInput" class="form-control" step="0.1" min="25.0" max="42.0" placeholder="e.g. 35.4">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-half">
+                                <label for="chlInput">Chlorophyll-a (mg/m³)</label>
+                                <input type="number" id="chlInput" class="form-control" step="0.01" min="0.0" max="30.0" placeholder="e.g. 0.14">
+                            </div>
+                            <div class="form-group col-half">
+                                <label for="mldInput">Mixed Layer Depth (m)</label>
+                                <input type="number" id="mldInput" class="form-control" step="0.5" min="0.0" max="150.0" placeholder="e.g. 18.5">
+                            </div>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group col-half">
+                                <label for="oxygenInput">Dissolved O₂ (mmol/m³)</label>
+                                <input type="number" id="oxygenInput" class="form-control" step="0.5" min="150.0" max="250.0" placeholder="e.g. 202.0">
+                            </div>
+                            <div class="form-group col-half">
+                                <label for="sshInput">Sea Surface Height (m)</label>
+                                <input type="number" id="sshInput" class="form-control" step="0.01" min="-1.0" max="1.5" placeholder="e.g. 0.35">
+                            </div>
+                        </div>
+                    </div>
+                </details>
+
+                <button type="submit" class="btn-primary" id="predictSubmitBtn">
+                    <span class="btn-label">Calculate Suitability Estimate</span>
+                    <span class="btn-spinner" id="btnSpinner"></span>
+                </button>
+            </form>
+
+            <!-- Prediction Result Card -->
+            <div class="panel-card result-card" id="resultCard" style="display: none;">
+                <div class="card-header">
+                    <h3>Model Suitability Estimate</h3>
+                    <span class="badge" id="suitabilityBadge">High Suitability</span>
+                </div>
+
+                <div class="metric-highlight">
+                    <div class="metric-value" id="predictedCatchValue">--</div>
+                    <div class="metric-unit">Estimated Catch Biomass (MT / month / cell)</div>
+                </div>
+
+                <div class="result-details">
+                    <div class="detail-row">
+                        <span class="detail-label">Target Species:</span>
+                        <span class="detail-value">Skipjack Tuna (<em>Katsuwonus pelamis</em>)</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Model Pipeline:</span>
+                        <span class="detail-value" id="resultModelVersion">Random Forest (log1p) v1.0</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Query Coordinates:</span>
+                        <span class="detail-value" id="resultCoordinates">--</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Evaluation Benchmark:</span>
+                        <span class="detail-value text-emerald">Outperforms Baseline (MAE: -4.1%)</span>
+                    </div>
+                </div>
+
+                <div class="result-disclaimer" id="resultDisclaimer">
+                    Decision-support estimate based on historical 2005-2019 environmental time-series. Does not constitute official marine advice or catch guarantee.
+                </div>
+            </div>
+
+            <!-- Error Notification Alert -->
+            <div class="alert-box alert-error" id="errorAlert" style="display: none;">
+                <div class="alert-icon">⚠️</div>
+                <div class="alert-message" id="errorMessage">An error occurred.</div>
+            </div>
+        </aside>
+
+        <!-- Right Viewport: Interactive Leaflet Map & Legend -->
+        <section class="map-viewport-panel">
+            <div class="map-toolbar">
+                <div class="toolbar-title">
+                    <span class="dot-live"></span>
+                    <span>Interactive Marine Geospatial Canvas</span>
+                </div>
+                <div class="toolbar-actions">
+                    <button class="btn-sm" id="viewWioBtn" title="Center on Western Indian Ocean Study Area">
+                        Western Indian Ocean
+                    </button>
+                    <button class="btn-sm" id="viewKarnatakaBtn" title="Center on INCOIS Karnataka Coastal Sector">
+                        Karnataka Coastal Sector
+                    </button>
+                    <button class="btn-sm" id="toggleAdvisoriesBtn">
+                        Toggle INCOIS Points (24)
+                    </button>
+                </div>
+            </div>
+
+            <!-- Map Container -->
+            <div id="leafletMap" class="map-container"></div>
+
+            <!-- Map Floating Legend -->
+            <div class="map-floating-legend">
+                <h4>Map Legend & Layers</h4>
+                <div class="legend-item">
+                    <span class="legend-symbol symbol-advisory"></span>
+                    <span class="legend-text">
+                        <strong>Historical INCOIS Advisory</strong>
+                        <small>Karnataka Coast (4–5 Oct 2026)</small>
+                    </span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-symbol symbol-prediction"></span>
+                    <span class="legend-text">
+                        <strong>OCEANIX Model Estimate</strong>
+                        <small>Western Indian Ocean Predictor</small>
+                    </span>
+                </div>
+                <div class="legend-item">
+                    <span class="legend-symbol symbol-domain"></span>
+                    <span class="legend-text">
+                        <strong>Study Boundary</strong>
+                        <small>WIO Domain: [38°E–80°E, 15°S–15°N]</small>
+                    </span>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- About & Limitations Modal -->
+    <div class="modal-backdrop" id="aboutModal" style="display: none;">
+        <div class="modal-window">
+            <div class="modal-header">
+                <h2>About OCEANIX & Public Limitations</h2>
+                <button class="modal-close-btn" id="closeAboutModalBtn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>Scientific Background & Purpose</h3>
+                <p>
+                    OCEANIX is an educational decision-support engineering prototype designed to evaluate the practical feasibility of using real marine environmental data to estimate fishing-zone suitability.
+                </p>
+
+                <h3>Data Sources & Provenance</h3>
+                <ul>
+                    <li><strong>NOAA / NCEI Accession 0306675:</strong> 15 years (2005–2019) of Western Indian Ocean Skipjack tuna catch records compiled by the Indian Ocean Tuna Commission (IOTC) and paired with 12 Copernicus Marine physical/biogeochemical ocean variables.</li>
+                    <li><strong>INCOIS PFZ Advisories:</strong> Operational Potential Fishing Zone advisories issued by the Indian National Centre for Ocean Information Services (Ministry of Earth Sciences, GoI) for the Karnataka coastal sector.</li>
+                </ul>
+
+                <h3>Rigorous Evaluation Protocol</h3>
+                <p>
+                    The machine learning model was trained strictly on data from <strong>2005 to 2015</strong> and evaluated on an unseen, frozen <strong>2016 to 2019 holdout partition</strong>. The Random Forest ensemble outperforms the dummy baseline across MAE, RMSE, and $R^2$.
+                </p>
+
+                <div class="alert-box alert-warning">
+                    <h4>Ethical Guardrails & Disclaimers</h4>
+                    <ul>
+                        <li><strong>Not a Guarantee of Catch:</strong> Environmental suitability estimates reflect statistical similarity to historical commercial catch conditions; they do not guarantee fish presence.</li>
+                        <li><strong>Not a Navigational Tool:</strong> OCEANIX does not assess maritime hazards, waves, cyclones, or sea-state safety. Fishers must always consult official IMD/INCOIS forecasts.</li>
+                        <li><strong>Geographic Boundary:</strong> The model is calibrated for the Western Indian Ocean pelagic fishery and cannot be extrapolated to nearshore artisanal fisheries.</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-primary" id="modalDismissBtn">Understood</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <!-- App JS -->
+    <script src="js/app.js"></script>
+</body>
+</html>
+

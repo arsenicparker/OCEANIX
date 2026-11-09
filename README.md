@@ -78,8 +78,53 @@ pip install -r requirements.txt
 - [x] Milestone M3: Machine Learning Pipeline & Training (Completed).
 - [x] Milestone M4: Model Evaluation & Limitations Reporting (Completed).
 - [x] Milestone M5: FastAPI Service & Schemas (Completed).
-- [ ] Milestone M6: Frontend & Interactive Leaflet Map.
-- [ ] Milestone M6: Frontend & Interactive Leaflet Map.
+- [x] Milestone M6: Frontend & Interactive Leaflet Map (Completed).
+- [x] Design Diagram added.
 - [ ] Milestone M7: Integration, QA & End-to-End Testing.
 - [ ] Milestone M8: Final Deliverables & Demonstration.
+
+---
+
+## 5. Running the Application Locally
+```bash
+# Start FastAPI and web application
+python -m uvicorn oceanix.api.main:app --host 127.0.0.1 --port 8000 --reload
+
+# Open web prototype in browser
+# http://127.0.0.1:8000/
+# API Documentation (Swagger UI)
+# http://127.0.0.1:8000/docs
+```
+
+---
+
+## 6. Full reproducibility guide
+To reproduce the entire workflow from a clean clone:
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/arsenicparker/OCEANIX.git
+   cd OCEANIX
+   ```
+2. **Create a virtual environment & install dependencies**
+   ```bash
+   python -m venv .venv
+   # Windows:
+   .venv\Scripts\activate
+   # Linux/macOS:
+   source .venv/bin/activate
+   pip install -r requirements.txt
+   ```
+3. **Run the test suite** to verify the data‑audit, model, API and UI layers:
+   ```bash
+   pytest -q
+   ```
+4. **Start the FastAPI service** (as shown above) and open the UI at `http://127.0.0.1:8000/`.
+5. **Optional**: Review the architecture diagram – see `docs/design_diagram.md`.
+
+---
+
+## 7. Architecture diagram
+A high‑level flow of data from raw sources to the interactive UI is visualised in [design_diagram.md](docs/design_diagram.md).
+
+
 

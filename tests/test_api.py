@@ -129,3 +129,11 @@ def test_karnataka_advisories_endpoint():
         assert feat["geometry"]["type"] == "Point"
         assert len(feat["geometry"]["coordinates"]) == 2
         assert "advisory_id" in feat["properties"]
+
+
+def test_frontend_index_served():
+    """Verify that root endpoint serves the HTML frontend."""
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "OCEANIX" in response.text
+    assert "leafletMap" in response.text
