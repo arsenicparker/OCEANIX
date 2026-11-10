@@ -293,6 +293,7 @@ def _environment_readings(lat: float, lon: float) -> dict[str, Any]:
     # imagery and a NetCDF download. It currently does not expose a supported
     # point-query API; do not turn a color on the image into a fake number.
     abis: dict[str, Any] = {"value": None, "unit": "mg/m³", "source": "INCOIS ABIS daily satellite product"}
+    satellite_sst: dict[str, Any] = {"value": None, "unit": "°C", "source": "INCOIS ABIS daily satellite product"}
     try:
         page = _HTTP.get(INCOIS_ABIS_PAGE, timeout=20)
         page.raise_for_status()
@@ -308,13 +309,25 @@ def _environment_readings(lat: float, lon: float) -> dict[str, Any]:
                 except ValueError:
                     abis["date"] = match.group(1)
             abis["colorbar_url"] = urljoin(INCOIS_ABIS_PAGE, "/datasets/ecosystem/HAB/ColorBars/CHL_colorbar.png")
+        sst_match = re.search(r"(?:href|src)=['\"]([^'\"]*A-[^'\"]*-4KM-IndiaSriLanka-SST\.png)['\"]", page.text)
+        if sst_match:
+            satellite_sst["image_url"] = urljoin(INCOIS_ABIS_PAGE, sst_match.group(1))
+            satellite_sst["colorbar_url"] = urljoin(INCOIS_ABIS_PAGE, "/datasets/ecosystem/HAB/ColorBars/SST_colorbar.png")
+            satellite_sst["source_url"] = INCOIS_ABIS_PAGE
+            date_match = re.search(r"A-([A-Za-z]+\d{4})-d(\d{2})-4KM-IndiaSriLanka-SST\.png", sst_match.group(1))
+            if date_match:
+                try:
+                    month = datetime.strptime(date_match.group(1), "%b%Y").strftime("%b %Y")
+                    satellite_sst["date"] = f"{int(date_match.group(2))} {month}"
+                except ValueError:
+                    satellite_sst["date"] = date_match.group(1)
     except Exception as exc:
         logger.warning("INCOIS ABIS product lookup failed: %s", exc)
         errors.append("chlorophyll: INCOIS daily map lookup unavailable")
     return {
         "location": {"latitude": lat, "longitude": lon},
         "retrieved_at": datetime.now(timezone.utc).isoformat(),
-        "readings": {**readings, "chlorophyll_a": abis},
+        "readings": {**readings, "chlorophyll_a": abis, "sst_satellite": satellite_sst},
         "errors": errors,
         "note": "INCOIS OSF values are model forecast fields. Satellite chlorophyll is shown as the official daily map; no numeric point value is reported unless INCOIS exposes a verified point query.",
     }

@@ -79,6 +79,13 @@ document.addEventListener('DOMContentLoaded', () => {
     return new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', year: 'numeric' }).format(parsed);
   }
 
+  function formatReadingTime(value) {
+    if (!value) return 'time unavailable';
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return 'time unavailable';
+    return new Intl.DateTimeFormat('en-IN', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit', timeZoneName: 'short' }).format(parsed);
+  }
+
   function validityLabel(value) {
     const match = String(value || '').match(/(\d{1,2}\s+[A-Z]{3}\s+\d{4})/i);
     if (match) return match[1].replace(/\b\w/g, (x) => x.toUpperCase());
@@ -135,7 +142,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const [, decimals] = environmentLabels[key];
     value.textContent = `${Number(reading.value).toFixed(decimals)} ${reading.unit || ''}`.trim();
-    detail.textContent = `${reading.source || 'INCOIS'} · ${formatDate(String(reading.time || '').slice(0, 10))} ${String(reading.time || '').slice(11, 16)} UTC`;
+    detail.textContent = `${reading.source || 'INCOIS'} · ${formatReadingTime(reading.time)}`;
   }
 
   async function loadConditions() {
@@ -174,6 +181,14 @@ document.addEventListener('DOMContentLoaded', () => {
           $('#chlorophyllDate').textContent = chl.date ? `Satellite product · ${chl.date}` : 'Latest published daily product';
           $('#chlorophyllPanel').hidden = false;
         }
+      }
+      const satelliteSst = readings.sst_satellite;
+      if (satelliteSst?.image_url) {
+        $('#satelliteSstImage').src = satelliteSst.image_url;
+        $('#satelliteSstImageLink').href = satelliteSst.image_url;
+        if (satelliteSst.colorbar_url) $('#satelliteSstColorbar').src = satelliteSst.colorbar_url;
+        $('#satelliteSstDate').textContent = satelliteSst.date || 'Latest daily satellite product';
+        $('#satelliteSstMap').hidden = false;
       }
       const available = Object.keys(environmentLabels).filter((key) => readings[key]).length;
       $('#conditionsStatus').classList.remove('is-error', 'is-loading');
