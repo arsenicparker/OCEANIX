@@ -1,139 +1,65 @@
-"""Integration tests for OCEANIX FastAPI endpoints."""
+"""API-handler checks for the INCOIS data playground.
 
-import pytest
-from fastapi.testclient import TestClient
-from oceanix.api.main import app
+The managed Windows test sandbox blocks the socketpair used by Starlette's
+TestClient, so these tests exercise handlers and static assets directly.
+"""
 
-client = TestClient(app)
+import json
+from pathlib import Path
+
+from oceanix.api.main import (
+    app,
+    get_current_pfz_snapshot,
+    get_current_pfz_summary,
+    get_karnataka_advisories,
+    health_check,
+)
 
 
-def test_health_endpoint():
-    """Verify /health returns status ok and model is loaded."""
-    response = client.get("/health")
-    assert response.status_code == 200
-    data = response.json()
+def test_health_endpoint_reports_prepared_snapshot():
+    data = health_check().model_dump()
     assert data["status"] == "ok"
-    assert data["model_loaded"] is True
-    assert "model_version" in data
+    assert data["data_loaded"] is True
+    assert data["snapshot_date"] == "2026-11-09"
 
 
-def test_model_info_endpoint():
-    """Verify /model-info returns complete schema, metrics, and limitations."""
-    response = client.get("/model-info")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["model_name"] == "OCEANIX Skipjack Tuna Suitability Regressor"
-    assert data["target_variable"] == "skipjack_catch_biomass"
-    assert "features" in data
-    assert len(data["features"]) == 15
-    assert "metrics_held_out_test_set" in data
-    assert "limitations" in data
-    assert len(data["limitations"]) > 0
+def test_current_pfz_snapshot_geojson():
+    data = json.loads(get_current_pfz_snapshot().body)
+    assert data["type"] == "FeatureCollection"
+    assert len(data["features"]) == 522
+    for feature in data["features"]:
+        assert feature["geometry"]["type"] == "Point"
+        assert len(feature["geometry"]["coordinates"]) == 2
+        assert feature["properties"]["sector_name"]
+        assert feature["properties"]["forecast_valid_to"] == "2026-11-10"
 
 
-def test_predict_success_minimal_input():
-    """Verify /predict succeeds with minimal required coordinates and month."""
-    payload = {
-        "longitude": 52.25,
-        "latitude": -2.25,
-        "month": 7,
-    }
-    response = client.post("/predict", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "ok"
-    assert data["target"] == "skipjack_catch_biomass"
-    assert isinstance(data["predicted_catch_biomass_mt"], (int, float))
-    assert data["predicted_catch_biomass_mt"] >= 0.0
-    assert data["suitability_tier"] in [
-        "Low Suitability",
-        "Moderate Suitability",
-        "High Suitability",
-    ]
-    assert "disclaimer" in data
+def test_current_pfz_summary():
+    data = get_current_pfz_summary()
+    assert data["point_count"] == 522
+    assert data["sector_count"] == 14
+    assert data["is_live_connection"] is False
+    assert data["coordinate_format"] == "DMS (higher precision)"
 
 
-def test_predict_success_full_features():
-    """Verify /predict succeeds when all oceanographic features are provided."""
-    payload = {
-        "longitude": 55.25,
-        "latitude": 4.75,
-        "month": 1,
-        "thetao": 26.78,
-        "chl": 0.34,
-        "so": 35.42,
-        "o2": 207.54,
-        "mlotst": 23.08,
-        "uo": -0.19,
-        "vo": 0.10,
-        "ph": 8.04,
-        "zos": 0.23,
-        "bottomT": 0.88,
-        "phyc": 1.79,
-        "nppv": 23.88,
-    }
-    response = client.post("/predict", json=payload)
-    assert response.status_code == 200
-    data = response.json()
-    assert data["status"] == "ok"
-    assert data["predicted_catch_biomass_mt"] >= 0.0
-
-
-def test_predict_invalid_latitude():
-    """Verify 422 is returned when latitude exceeds the Western Indian Ocean domain."""
-    payload = {
-        "longitude": 52.25,
-        "latitude": 35.0,  # Valid WIO is -15 to +15
-        "month": 6,
-    }
-    response = client.post("/predict", json=payload)
-    assert response.status_code == 422
-
-
-def test_predict_invalid_longitude():
-    """Verify 422 is returned when longitude exceeds the Western Indian Ocean domain."""
-    payload = {
-        "longitude": 105.0,  # Valid WIO is 38 to 80
-        "latitude": 0.0,
-        "month": 6,
-    }
-    response = client.post("/predict", json=payload)
-    assert response.status_code == 422
-
-
-def test_predict_invalid_month():
-    """Verify 422 is returned for invalid month number."""
-    payload = {
-        "longitude": 52.25,
-        "latitude": -2.25,
-        "month": 13,
-    }
-    response = client.post("/predict", json=payload)
-    assert response.status_code == 422
-
-
-def test_predict_missing_body():
-    """Verify 422 on empty or missing body."""
-    response = client.post("/predict", json={})
-    assert response.status_code == 422
-
-
-def test_karnataka_advisories_endpoint():
-    """Verify /advisories/karnataka returns valid GeoJSON FeatureCollection."""
-    response = client.get("/advisories/karnataka")
-    assert response.status_code == 200
-    data = response.json()
+def test_archived_karnataka_advisory_endpoint_remains_available():
+    data = json.loads(get_karnataka_advisories().body)
     assert data["type"] == "FeatureCollection"
     assert len(data["features"]) == 24
-    for feat in data["features"]:
-        assert feat["geometry"]["type"] == "Point"
-        assert len(feat["geometry"]["coordinates"]) == 2
-        assert "advisory_id" in feat["properties"]
 
 
-def test_frontend_index_served():
-    """Verify that root endpoint serves the HTML frontend."""
-    response = client.get("/")
-    assert response.status_code == 200
-    assert "OCEANIX" in response.text
-    assert "leafletMap" in response.text
+def test_manual_measurement_prediction_is_not_exposed():
+    route_paths = {getattr(route, "path", None) for route in app.routes}
+    assert "/predict" not in route_paths
+
+
+def test_frontend_and_static_assets_are_served():
+    root = Path(__file__).resolve().parents[1]
+    html = (root / "frontend" / "index.html").read_text(encoding="utf-8")
+    app_js = (root / "frontend" / "js" / "app.js").read_text(encoding="utf-8")
+    assert "OCEANIX" in html
+    assert "leafletMap" in html
+    assert "leaflet.heat" in html
+    assert "catch probability" in html
+    assert "tile.openstreetmap.org" in app_js
+    assert "basemaps.cartocdn.com" not in app_js

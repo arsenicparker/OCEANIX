@@ -1,104 +1,52 @@
-# OCEANIX Dataset Audit & Evidence Report
+# OCEANIX Dataset Audit
 
-*Document Version 1.0 — Milestone M1 (Data Audit)*  
-*Conducted in accordance with Project Blueprint Section 7, 8, and Implementation Plan M1.*
+*Rechecked 9 November 2026. The machine-readable audit is saved at `data/processed/dataset_audit.json`.*
 
----
+## Audit decision
 
-## 1. Executive Summary & Audit Decisions
+| Candidate | Verification result | Decision for this stage |
+|---|---|---|
+| Current INCOIS PFZ sector exports | 14 source exports; 522 prepared points; all source checksums match the dated manifest; all 14 sector labels and coordinates validate | **GO** for a dated advisory data playground and map. **NO-GO** for supervised ML from this snapshot alone. |
+| INCOIS PFZ WebGIS line export | 102 valid `MultiLineString` features over 14 sectors; embedded source date is 8 Nov 2026 (Julian day 312), not the same date as the 9 Nov sector export | Retain for investigation; exclude from the current point overlay pending date alignment. |
+| Archived Karnataka PFZ Excel | 24 valid positive points, forecast 4–5 Oct 2026; no environmental features or comparison labels | Historical parsing fixture only; not an ML training set. |
+| NOAA/NCEI 0306675 | Checksums match; 66,520 rows per raw table; 100% key match; 19,866 non-null SKJ target rows; 12 environmental variables; 2005–2019 | **GO** as a WIO skipjack research dataset only. Retain as reference/fallback; it does not validate Karnataka PFZ. |
+| Current environmental inputs from INCOIS | Holdings page lists near-real-time products. The accessible ERDDAP SST/chlorophyll entries inspected here end in 2011, 2020, or earlier; no current gridded environmental extract was added | Open data-access task. Do not label old data as real-time. |
 
-In accordance with the Project Blueprint's **"Evidence before algorithms"** rule, candidate datasets were audited before committing to machine learning model architecture or target formulation.
+## Current INCOIS snapshot checks
 
-| Candidate Route | Dataset | Audit Outcome | Formal Decision | Operational Role in OCEANIX |
-|---|---|---|---|---|
-| **Route A** | INCOIS Karnataka PFZ Advisory (`PfzForecast_KARNATAKA.xls`) | 24 operational points, 0 negative examples, 0 environmental features, 48-hour time horizon. | **NO-GO for standalone ML training**<br>**GO for Advisory Parsing & UI Map Overlay** | Preserved and integrated into the frontend Leaflet map and API as an operational advisory overlay; establishes DMS-to-decimal coordinate parsing pipeline. |
-| **Route B** | NOAA/NCEI Accession 0306675 (`Catch_data.txt` & `Environmental_data.txt`) | 66,520 total records, 19,866 verified historical catch observations, 12 oceanographic variables, 15 continuous years (2005–2019), 100% inner join match (0 unmatched rows). | **GO for Machine Learning** | Primary machine learning training and evaluation dataset for Western Indian Ocean skipjack tuna suitability and catch biomass modeling. |
+- **Source date:** 9 Nov 2026, source-reported update `Mon Nov 09 16:50:51 IST 2026`.
+- **Validity:** Source text says likely availability through 10 Nov 2026.
+- **Raw exports:** 14 `.xls` files named `INCOIS_PFZ_SEC001_2026-11-09.xls` through `SEC014`.
+- **Manifest:** `data/raw/INCOIS_PFZ_sector_manifest_2026-11-09.json` records sector count, point count, bytes, update text, validity text, and SHA-256 for each export.
+- **Prepared table:** 522 unique advisory points across 14 sectors. Coordinates are within latitude −90°..90° and longitude −180°..180°.
+- **Bounds:** latitude 6.781111°..22.860278°; longitude 68.660000°..93.639722°.
+- **Output:** `data/interim/incois_current_pfz.csv` and `data/interim/incois_current_pfz.geojson`.
+- **Audit status:** PASS; 14/14 files found; no checksum mismatch.
+- **Freshness:** Dated source snapshot only. The local app does not poll INCOIS. After the forecast validity, refresh the source snapshot before describing it as current.
 
----
+The official advisory point list represents INCOIS advisories. It does not identify fish absence at unlisted coordinates. The dated snapshot does not contain a measured catch target or environmental feature matrix.
 
-## 2. Mandatory Dataset Audit Checklist (Blueprint Section 7)
+## Current WebGIS line layer checks
 
-| Check | Required Evidence | Evaluation & Finding | Pass / Status |
-|---|---|---|:---:|
-| **Identity and Provenance** | Official URL, dataset title, version, retrieval date | Sourced from NOAA/NCEI Accession 0306675 (BCSS / IOTC / Copernicus Marine) and INCOIS Ministry of Earth Sciences. URLs and SHA-256 checksums documented in `docs/data_sources.md`. | **PASS** |
-| **Time Coverage** | Earliest/latest timestamp, time zone, frequency | NOAA 0306675 spans 2005 to 2019 (15 full calendar years) at monthly frequency. Allows strict chronological train/test splitting (e.g. 2005–2015 train, 2016–2019 frozen holdout). INCOIS file covers 4–5 Oct 2026. | **PASS** (Route B) |
-| **Geography** | Coordinate bounds, CRS, spatial bounds | Western Indian Ocean grid: Longitude [38.75°E, 79.75°E], Latitude [-14.75°S, 14.75°N] in WGS84 decimal degrees. Karnataka PFZ covers Lat [13.18°N, 14.72°N], Lon [73.48°E, 74.52°E]. | **PASS** |
-| **Schema and Units** | Column names, field definitions, units, encodings | Documented data dictionary in `data_sources.md`: SST (`thetao` in °C), Salinity (`so` in PSU), Chlorophyll-a (`chl` in $mg/m^3$), Oxygen (`o2` in $mmol/m^3$), Mixed Layer Depth (`mlotst` in m), Currents (`uo`, `vo` in $m/s$). Target `SKJ` in metric tons. | **PASS** |
-| **Target Validity** | How target is measured or constructed | Route B target `SKJ` is recorded Skipjack tuna catch biomass from official IOTC fishery logbooks. Target is numeric and empirical. Route A contains only advisory coordinates (no fish abundance). | **PASS** (Route B) |
-| **Feature Match** | Join key, time window, spatial matching | Catch records join to Environmental grid exactly on composite key `['ID', 'Lon', 'Lat', 'month', 'year']`. 66,520 rows in both files; 100% match rate, 0 unmatched rows. | **PASS** |
-| **Sample Quality** | Row count, duplicates, missingness, impossible values | Zero duplicate composite keys. 19,866 observed catch rows. Predictor null rates: physical variables (0.9%), biogeochemical variables (0.9%), `nppv` (16.5%). Imputation handled strictly post-split. | **PASS** |
-| **Class Balance / Distribution** | Target distribution / range | `SKJ` range: 0.19 to 1395.19 metric tons (median: 26.97, IQR: [12.02, 58.37]). Positive right-skewed distribution suitable for log1p transformation or suitability quantile framing. | **PASS** |
-| **Data Rights** | License, use terms, citations | NOAA open federal repository / CC0 equivalent; Copernicus open access policy; IOTC data dissemination policy. Proper citation mandatory in all deliverables. | **PASS** |
-| **Repeatability** | Deterministic scripts, immutable raw files, checksums | Reproducible via `python src/oceanix/data/audit.py`. SHA-256 checksums recorded; automated test suite verifies integrity. | **PASS** |
+`data/raw/INCOIS_PFZ_Lines_India_2026-11-09.geojson` is a valid JSON `FeatureCollection` with 102 `MultiLineString` features and all 14 sector names. Its features have `Year=2026` and `Julian_day=312`, corresponding to 8 November 2026. Its SHA-256 is `2134c80e94e794cc1c2381616b3987502329430d84103ea5c84f23907164a413`.
 
----
+The line layer’s date and geometry type differ from the sector Excel point export. It is not treated as a matching same-day PFZ boundary layer and is not included in the first map view.
 
-## 3. Detailed Audit of Route A: INCOIS Karnataka PFZ Advisory
+## Historical WIO validation
 
-### 3.1 Raw Ingestion & Physical Structure
-- **File**: `data/raw/PfzForecast_KARNATAKA.xls`
-- **Format**: Microsoft Excel BIFF8 compound binary file.
-- **Header Structure**: Metadata in rows 0–1; column headers in row 2; records in rows 3–26; footer abbreviations in rows 27–30.
-- **Valid Advisory Points**: Exactly 24 points.
+The audit rechecked the local NOAA files and processed table:
 
-### 3.2 Geographic & Coordinate Audit
-Coordinates are supplied in Degree Minute Second (DMS) string format:
-- Latitude: `13 10 36 N` to `14 43 18 N` $\rightarrow$ Decimal Degrees: $[13.1767^\circ\text{N}, 14.7217^\circ\text{N}]$
-- Longitude: `73 37 15 E` to `74 30 57 E` $\rightarrow$ Decimal Degrees: $[73.4819^\circ\text{E}, 74.5158^\circ\text{E}]$
-- Shore Distance: 23 km to 101 km.
-- Water Depth: 32 m to 112 m.
+- `Catch_data.txt`: 66,520 rows; 19,866 non-null `SKJ` observations; 46,654 rows with no target.
+- `Environmental_data.txt`: 66,520 rows and 12 environmental variables.
+- Join on `ID`, `Lon`, `Lat`, `month`, `year`: 66,520 matches; 0 unmatched rows.
+- `clean_fishery_env.csv`: 19,866 rows with observed target and 20 columns.
+- Chronological split: train 13,599 rows (2005–2015); holdout 6,267 rows (2016–2019); no year crosses both splits.
+- Raw file hashes match the previously recorded checksums.
 
-### 3.3 Target & Feasibility Analysis
-- **Absence of Negative Samples**: The file contains exclusively positive advisory locations. Treating unlisted points as "absence of fish" would be scientifically invalid (violating Blueprint Section 7).
-- **Absence of Oceanographic Covariates**: The file contains no paired SST, chlorophyll-a, or salinity values.
-- **Conclusion**: Cannot support training a generalized supervised machine learning classifier. It serves as a real-world validation fixture for operational parsing and map visualization.
+These checks confirm local file integrity and data alignment, not the suitability of the WIO model for the new INCOIS app.
 
----
+## Required next decision for AIML
 
-## 4. Detailed Audit of Route B: NOAA/NCEI Accession 0306675
+Before building an INCOIS model, obtain historical PFZ labels and matched SST/chlorophyll (or other justified environmental variables) for sufficient times and locations. Document source access, target semantics, spatial/temporal matching, coverage, missingness, and defensible comparison samples. A missing advisory label must not be silently interpreted as no fish.
 
-### 4.1 Ingestion & Join Alignment
-- **Files**: `Catch_data.txt` (66,520 rows, 6 columns) and `Environmental_data.txt` (66,520 rows, 17 columns).
-- **Join Keys**: `ID`, `Lon`, `Lat`, `month`, `year`.
-- **Join Outcome**:
-  - Inner join row count: **66,520**.
-  - Unmatched catch rows: **0**.
-  - Unmatched environmental rows: **0**.
-
-### 4.2 Target Field (`SKJ`) Distribution Analysis
-- **Observed Fishery Records (`SKJ` is not null)**: **19,866 records** spanning 2005 through 2019.
-- **Unobserved Spatial Projection Cells (`SKJ` is null)**: **46,654 records** concentrated in 2014 and 2015, representing the authors' full spatial background grid for Western Indian Ocean mapping.
-- **Non-Null Catch Statistics**:
-  - Min: 0.19 MT
-  - 25th Percentile: 12.02 MT
-  - Median (50th): 26.97 MT
-  - Mean: 46.49 MT
-  - 75th Percentile: 58.37 MT
-  - Max: 1,395.19 MT
-  - Standard Deviation: 58.46 MT
-
-### 4.3 Environmental Predictor Covariates
-Evaluated across the 19,866 observed fishery records:
-| Variable | Description | Count Non-Null | Null % | Mean | Min | Median | Max |
-|---|---|---|---|---|---|---|---|
-| `thetao` | SST (°C) | 19,271 | 2.99% | 27.92 | 24.71 | 28.07 | 30.26 |
-| `chl` | Chlorophyll-a ($mg/m^3$) | 19,271 | 2.99% | 2.56 | 0.06 | 0.14 | 8.08 |
-| `so` | Salinity (PSU) | 19,271 | 2.99% | 35.34 | 33.08 | 35.39 | 36.62 |
-| `o2` | Dissolved Oxygen ($mmol/m^3$) | 19,271 | 2.99% | 202.32 | 190.06 | 201.92 | 221.34 |
-| `mlotst` | Mixed Layer Depth (m) | 19,271 | 2.99% | 19.89 | 9.73 | 16.93 | 68.42 |
-| `uo` | Eastward velocity ($m/s$) | 19,271 | 2.99% | 0.001 | -0.87 | -0.018 | 0.99 |
-| `vo` | Northward velocity ($m/s$) | 19,271 | 2.99% | 0.024 | -1.25 | 0.039 | 0.90 |
-| `ph` | Surface pH | 19,271 | 2.99% | 8.028 | 8.002 | 8.027 | 8.080 |
-| `zos` | Sea surface height (m) | 19,271 | 2.99% | 0.350 | 0.068 | 0.345 | 0.839 |
-| `bottomT` | Bottom temperature (°C) | 19,271 | 2.99% | 1.375 | 0.690 | 0.979 | 28.72 |
-| `phyc` | Phytoplankton carbon | 19,271 | 2.99% | 1.374 | 0.854 | 1.325 | 2.976 |
-| `nppv` | Net primary production | 16,583 | 16.53% | 6.333 | 0.326 | 2.515 | 50.59 |
-
----
-
-## 5. Formal Stop/Go Decisions & Synthesis
-
-1. **Route B (NOAA Accession 0306675) is awarded GO status** for machine learning pipeline development. It satisfies all 10 criteria of the blueprint audit checklist, provides a genuine empirical target (`SKJ`), and contains 15 years of matched Copernicus Marine environmental covariates across 19,866 observations.
-2. **Route A (INCOIS Karnataka PFZ) is awarded CONDITIONAL-GO**: Classified as **NO-GO for standalone model training**, but **GO for operational advisory parsing, API serving, and Leaflet map rendering**.
-3. **Execution Plan**: The machine learning model will be trained on Route B data with explicit labeling that it represents Western Indian Ocean Skipjack Tuna. The web prototype will present predictions for this validated model, while providing the capability to view historical INCOIS coastal advisories with distinct markers and disclaimers.
-
+If no usable history and matched features can be obtained, record NO-GO for supervised INCOIS training and agree a revised target or study route before implementing model behavior.

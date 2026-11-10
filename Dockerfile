@@ -14,7 +14,8 @@ WORKDIR /app
 # Copy only the required files to leverage Docker cache for dependencies.
 COPY requirements.txt ./
 RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --no-cache-dir -r requirements.txt && \
+    pip install --no-cache-dir -e .
 
 # Copy the entire source tree.
 COPY . ./

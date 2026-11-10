@@ -1,50 +1,30 @@
-# Final Project Report – OCEANIX
+# OCEANIX Project Report — Work in Progress
 
-## Executive Summary
-OCEANIX is an educational decision‑support prototype that predicts fishing‑zone suitability for skipjack tuna in the Western Indian Ocean.  The workflow is fully reproducible, from raw data audit through a scikit‑learn pipeline, a FastAPI service, and an interactive Leaflet UI.
+## Current milestone
 
-## 1. Data Audit & Sources
-- **INCOIS Karnataka PFZ advisory** – operational points, parsed and displayed on the map (no ML).  
-- **NOAA/NCEI 0306675** – oceanographic variables used as features.  
-- All sources are catalogued in `docs/dataset_audit.md` and `docs/data_sources.md`.
+OCEANIX is being reset to a data-first build sequence. The first deliverable is a simple mobile-friendly web playground for official INCOIS PFZ advisory data. It demonstrates dataset provenance, coordinate parsing, filtering, and mapping. The larger UI and AIML model are later milestones.
 
-## 2. Dataset Preparation
-- Deterministic preprocessing (`src/oceanix/data/prepare.py`) cleans, converts coordinates, merges variables, and writes `data/interim/cleaned_*.csv`.
-- Unit tests (`tests/test_data_checks.py`) verify schema, missingness, and coordinate validity.
+## Verified data collected
 
-## 3. Machine‑Learning Pipeline
-- Scikit‑learn `Pipeline` (`src/oceanix/modeling/pipeline.py`) with:
-  - ColumnTransformer → numeric imputation
-  - `RandomForestRegressor` (primary) vs `DummyRegressor` (baseline)
-- Temporal/spatial split prevents leakage.  
-- Metrics (MAE, RMSE, R²) stored in `docs/ml_results.md`.
-- Serialized artifact: `models/pipeline.joblib` + `models/model_metadata.json`.
+On 9 Nov 2026, the official INCOIS spreadsheet export was collected for all 14 sectors. The prepared table has 522 advisory points, DMS-derived coordinates, and source-reported validity through 10 Nov 2026. Per-file sizes and SHA-256 checksums are in the dated manifest. An official WFS line layer was also saved, but its embedded date is 8 Nov and it remains separate from the current point layer.
 
-## 4. FastAPI Service (`src/oceanix/api/main.py`)
-- Endpoints: `/health`, `/model-info`, `/predict`, `/advisories/karnataka`.
-- Robust startup loading, CORS for local dev, and Pydantic request/response schemas.
-- Full test suite (`tests/test_api.py`) ensures correct behaviour.
+Existing NOAA/NCEI WIO catch and environment files were checksum-checked. They remain as a separate historical reference and are not used by the current data playground.
 
-## 5. Front‑End UI (`frontend/`)
-- Single‑page app with Leaflet map, input form, prediction badge, and advisory overlay.
-- Responsive glassmorphism styling, dark‑mode palette, and disclaimer modal.
-- Communicates with the API via `fetch` calls.
+## Current app behavior
 
-## 6. Continuous Integration
-- GitHub Actions workflow `.github/workflows/ci.yml` runs the test suite on Windows on every push.
+- FastAPI serves the prepared INCOIS summary and GeoJSON.
+- The web page filters advisory points by sector and landing centre, with a linked map and data table.
+- OpenStreetMap tiles are used without a map API key and with attribution.
+- The app does not accept user-entered ocean measurements or claim model predictions.
 
-## 7. Containerised Deployment
-- **Dockerfile** builds a minimal image (`python:3.12‑slim`) installing the requirements and exposing port 8000.
-- **docker‑compose.yml** provides a one‑line `docker compose up` to launch the service.
+## AIML status
 
-## 8. Release
-- Tagged as **v1.0.0** and pushed to GitHub.
-- All artefacts (code, docs, CI, Docker) are present in the repository.
+No INCOIS model has been trained. The current advisory snapshot is too small in time and lacks matched environmental features and comparison samples. Historical INCOIS advisory and environmental data must be obtained and audited before defining a supervised target. The old WIO report values remain historical notes; a local legacy WIO artifact exists but is ignored by git and is not connected to the app. That experiment is not applicable to Karnataka.
 
-## 9. Demonstration Script (see `docs/demo_script.md`)
-- Clone repo → set up venv → run `pytest -q` → start API → open `http://127.0.0.1:8000/`.
-- Verify map loads advisory points and prediction flow works.
+## Remaining work
 
----
-**Limitations & Disclaimers** are reproduced throughout the UI, API docs, and `docs/limitations.md`.
+1. Run automated checks and inspect the data playground at desktop and phone widths.
+2. Verify the INCOIS historical archive and environmental-data access, then record a GO/NO-GO decision.
+3. Only after the user reviews the simple prototype and the data gate passes, design and implement the screenshot-inspired main UI.
 
+This document is not a final project report. Do not describe API, ML, deployment, or full UI milestones as complete until they have been reproduced and reviewed.

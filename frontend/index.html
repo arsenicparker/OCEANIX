@@ -1,307 +1,190 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OCEANIX | AI-Based Marine Intelligence</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-    <!-- Leaflet CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
-    <!-- App CSS -->
-    <link rel="stylesheet" href="css/styles.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071720">
+  <meta name="description" content="Explore dated, official INCOIS fishing-zone advisories on a mobile-friendly map.">
+  <title>OCEANIX | Marine intelligence</title>
+  <link rel="preconnect" href="https://unpkg.com">
+  <link rel="preconnect" href="https://tile.openstreetmap.org">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="">
+  <link rel="stylesheet" href="css/styles.css">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin="" defer></script>
+  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js" defer></script>
+  <script src="js/app.js" defer></script>
 </head>
-<body class="dark-theme">
+<body>
+  <svg class="icon-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1z"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.8" cy="10.8" r="6.8"/><path d="m16 16 5 5"/></symbol>
+    <symbol id="i-map" viewBox="0 0 24 24"><path d="m3 6 6-3 6 3 6-3v15l-6 3-6-3-6 3zM9 3v15m6-12v15"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 2.6-6.4L3 8"/><path d="M3 3v5h5m4-1v5l4 2"/></symbol>
+    <symbol id="i-more" viewBox="0 0 24 24"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></symbol>
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M20 10c0 5-8 12-8 12S4 15 4 10a8 8 0 1 1 16 0Z"/><circle cx="12" cy="10" r="2.4"/></symbol>
+    <symbol id="i-waves" viewBox="0 0 24 24"><path d="M2 7c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 13c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2M2 19c2.5 0 2.5-2 5-2s2.5 2 5 2 2.5-2 5-2 2.5 2 5 2"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 3v18h18M7 14l4-4 3 3 6-7"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5m0-8h.01"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/><path d="m19.4 15 .1.1 1.2 1-1.5 2.6-1.5-.6a8 8 0 0 1-1.7 1l-.2 1.6h-3l-.3-1.6a8 8 0 0 1-1.7-1l-1.5.6-1.5-2.6 1.2-1a7 7 0 0 1 0-2l-1.2-1 1.5-2.6 1.5.6a8 8 0 0 1 1.7-1l.3-1.6h3l.2 1.6a8 8 0 0 1 1.7 1l1.5-.6 1.5 2.6-1.2 1a7 7 0 0 1 0 2Z" transform="translate(-1 -1) scale(1.08)"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-6-6 6 6-6 6"/></symbol>
+    <symbol id="i-crosshair" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><path d="M12 2v3m0 14v3M2 12h3m14 0h3"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M16 3v4M8 3v4M3 10h18"/></symbol>
+    <symbol id="i-bookmark" viewBox="0 0 24 24"><path d="M6 4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17l-6-4-6 4z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+  </svg>
 
-    <!-- Top Navigation Bar -->
-    <header class="app-header">
-        <div class="header-container">
-            <div class="brand">
-                <div class="brand-icon">
-                    <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M2 12c3-4 6-4 8 0s5 4 8 0 4-2 4-2" />
-                        <path d="M2 17c3-4 6-4 8 0s5 4 8 0 4-2 4-2" />
-                        <circle cx="12" cy="7" r="3" />
-                    </svg>
-                </div>
-                <div>
-                    <h1 class="brand-title">OCEANIX</h1>
-                    <span class="brand-subtitle">AI Marine Intelligence & Decision Support</span>
-                </div>
-            </div>
-
-            <div class="header-actions">
-                <div class="status-indicator" id="apiStatusBadge">
-                    <span class="status-dot"></span>
-                    <span class="status-text" id="apiStatusText">Connecting to API...</span>
-                </div>
-                <button class="btn-ghost" id="openAboutModalBtn">
-                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10" />
-                        <line x1="12" y1="16" x2="12" y2="12" />
-                        <line x1="12" y1="8" x2="12.01" y2="8" />
-                    </svg>
-                    About & Limitations
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <!-- Main Workspace Container -->
-    <main class="main-layout">
-        
-        <!-- Left Sidebar: Controls & Input Studio -->
-        <aside class="sidebar-panel">
-            <div class="panel-card intro-card">
-                <div class="card-badge">Decision Support Prototype</div>
-                <h2>Fishing-Zone Suitability Studio</h2>
-                <p class="text-muted">
-                    Estimate Skipjack tuna habitat suitability in the Western Indian Ocean based on historical physical oceanography (2005–2019) or inspect verified INCOIS coastal advisories.
-                </p>
-                <div class="notice-pill">
-                    ⚠️ Educational prototype. Not an official catch guarantee or navigational tool.
-                </div>
-            </div>
-
-            <!-- Coordinate & Time Selection Form -->
-            <form id="predictionForm" class="panel-card form-card">
-                <div class="card-header">
-                    <h3>1. Query Location & Season</h3>
-                    <button type="button" class="btn-link" id="resetFormBtn">Reset</button>
-                </div>
-
-                <!-- Preset Quick Select -->
-                <div class="form-group">
-                    <label for="presetSelect">Western Indian Ocean Sectors</label>
-                    <select id="presetSelect" class="form-control">
-                        <option value="">-- Choose a Preset Sector --</option>
-                        <option value="52.25,-2.25,7">Seychelles Basin (52.25°E, -2.25°S - July)</option>
-                        <option value="55.25,4.75,1">Somali Basin (55.25°E, 4.75°N - January)</option>
-                        <option value="44.25,-3.25,4">East African Shelf (44.25°E, -3.25°S - April)</option>
-                        <option value="59.25,-1.25,10">Chagos Ridge Transition (59.25°E, -1.25°S - Oct)</option>
-                        <option value="47.25,-7.75,11">Mozambique Channel North (47.25°E, -7.75°S - Nov)</option>
-                    </select>
-                </div>
-
-                <div class="form-row">
-                    <div class="form-group col-half">
-                        <label for="longitudeInput">Longitude (°E) <span class="required">*</span></label>
-                        <input type="number" id="longitudeInput" class="form-control" step="0.25" min="38.0" max="80.0" value="52.25" required>
-                        <small class="hint">38.0°E to 80.0°E</small>
-                    </div>
-                    <div class="form-group col-half">
-                        <label for="latitudeInput">Latitude (°N/S) <span class="required">*</span></label>
-                        <input type="number" id="latitudeInput" class="form-control" step="0.25" min="-15.0" max="15.0" value="-2.25" required>
-                        <small class="hint">-15.0°S to +15.0°N</small>
-                    </div>
-                </div>
-
-                <div class="form-group">
-                    <label for="monthInput">Observation Month <span class="required">*</span></label>
-                    <select id="monthInput" class="form-control" required>
-                        <option value="1">January (NE Monsoon)</option>
-                        <option value="2">February (NE Monsoon)</option>
-                        <option value="3">March (Spring Transition)</option>
-                        <option value="4">April (Spring Transition)</option>
-                        <option value="5">May (SW Monsoon onset)</option>
-                        <option value="6">June (SW Monsoon)</option>
-                        <option value="7" selected>July (SW Monsoon peak)</option>
-                        <option value="8">August (SW Monsoon)</option>
-                        <option value="9">September (SW Monsoon retreat)</option>
-                        <option value="10">October (Fall Transition)</option>
-                        <option value="11">November (Fall Transition)</option>
-                        <option value="12">December (NE Monsoon)</option>
-                    </select>
-                </div>
-
-                <!-- Advanced Oceanographic Parameters (Accordion) -->
-                <details class="advanced-accordion">
-                    <summary class="accordion-header">
-                        <span>Advanced Oceanographic Covariates</span>
-                        <span class="accordion-badge">Optional</span>
-                    </summary>
-                    <div class="accordion-content">
-                        <p class="accordion-desc">Omitted fields use training median values automatically imputed by the pipeline.</p>
-                        
-                        <div class="form-row">
-                            <div class="form-group col-half">
-                                <label for="sstInput">SST (°C)</label>
-                                <input type="number" id="sstInput" class="form-control" step="0.1" min="15.0" max="35.0" placeholder="e.g. 27.8">
-                            </div>
-                            <div class="form-group col-half">
-                                <label for="salinityInput">Salinity (PSU)</label>
-                                <input type="number" id="salinityInput" class="form-control" step="0.1" min="25.0" max="42.0" placeholder="e.g. 35.4">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group col-half">
-                                <label for="chlInput">Chlorophyll-a (mg/m³)</label>
-                                <input type="number" id="chlInput" class="form-control" step="0.01" min="0.0" max="30.0" placeholder="e.g. 0.14">
-                            </div>
-                            <div class="form-group col-half">
-                                <label for="mldInput">Mixed Layer Depth (m)</label>
-                                <input type="number" id="mldInput" class="form-control" step="0.5" min="0.0" max="150.0" placeholder="e.g. 18.5">
-                            </div>
-                        </div>
-
-                        <div class="form-row">
-                            <div class="form-group col-half">
-                                <label for="oxygenInput">Dissolved O₂ (mmol/m³)</label>
-                                <input type="number" id="oxygenInput" class="form-control" step="0.5" min="150.0" max="250.0" placeholder="e.g. 202.0">
-                            </div>
-                            <div class="form-group col-half">
-                                <label for="sshInput">Sea Surface Height (m)</label>
-                                <input type="number" id="sshInput" class="form-control" step="0.01" min="-1.0" max="1.5" placeholder="e.g. 0.35">
-                            </div>
-                        </div>
-                    </div>
-                </details>
-
-                <button type="submit" class="btn-primary" id="predictSubmitBtn">
-                    <span class="btn-label">Calculate Suitability Estimate</span>
-                    <span class="btn-spinner" id="btnSpinner"></span>
-                </button>
-            </form>
-
-            <!-- Prediction Result Card -->
-            <div class="panel-card result-card" id="resultCard" style="display: none;">
-                <div class="card-header">
-                    <h3>Model Suitability Estimate</h3>
-                    <span class="badge" id="suitabilityBadge">High Suitability</span>
-                </div>
-
-                <div class="metric-highlight">
-                    <div class="metric-value" id="predictedCatchValue">--</div>
-                    <div class="metric-unit">Estimated Catch Biomass (MT / month / cell)</div>
-                </div>
-
-                <div class="result-details">
-                    <div class="detail-row">
-                        <span class="detail-label">Target Species:</span>
-                        <span class="detail-value">Skipjack Tuna (<em>Katsuwonus pelamis</em>)</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Model Pipeline:</span>
-                        <span class="detail-value" id="resultModelVersion">Random Forest (log1p) v1.0</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Query Coordinates:</span>
-                        <span class="detail-value" id="resultCoordinates">--</span>
-                    </div>
-                    <div class="detail-row">
-                        <span class="detail-label">Evaluation Benchmark:</span>
-                        <span class="detail-value text-emerald">Outperforms Baseline (MAE: -4.1%)</span>
-                    </div>
-                </div>
-
-                <div class="result-disclaimer" id="resultDisclaimer">
-                    Decision-support estimate based on historical 2005-2019 environmental time-series. Does not constitute official marine advice or catch guarantee.
-                </div>
-            </div>
-
-            <!-- Error Notification Alert -->
-            <div class="alert-box alert-error" id="errorAlert" style="display: none;">
-                <div class="alert-icon">⚠️</div>
-                <div class="alert-message" id="errorMessage">An error occurred.</div>
-            </div>
-        </aside>
-
-        <!-- Right Viewport: Interactive Leaflet Map & Legend -->
-        <section class="map-viewport-panel">
-            <div class="map-toolbar">
-                <div class="toolbar-title">
-                    <span class="dot-live"></span>
-                    <span>Interactive Marine Geospatial Canvas</span>
-                </div>
-                <div class="toolbar-actions">
-                    <button class="btn-sm" id="viewWioBtn" title="Center on Western Indian Ocean Study Area">
-                        Western Indian Ocean
-                    </button>
-                    <button class="btn-sm" id="viewKarnatakaBtn" title="Center on INCOIS Karnataka Coastal Sector">
-                        Karnataka Coastal Sector
-                    </button>
-                    <button class="btn-sm" id="toggleAdvisoriesBtn">
-                        Toggle INCOIS Points (24)
-                    </button>
-                </div>
-            </div>
-
-            <!-- Map Container -->
-            <div id="leafletMap" class="map-container"></div>
-
-            <!-- Map Floating Legend -->
-            <div class="map-floating-legend">
-                <h4>Map Legend & Layers</h4>
-                <div class="legend-item">
-                    <span class="legend-symbol symbol-advisory"></span>
-                    <span class="legend-text">
-                        <strong>Historical INCOIS Advisory</strong>
-                        <small>Karnataka Coast (4–5 Oct 2026)</small>
-                    </span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-symbol symbol-prediction"></span>
-                    <span class="legend-text">
-                        <strong>OCEANIX Model Estimate</strong>
-                        <small>Western Indian Ocean Predictor</small>
-                    </span>
-                </div>
-                <div class="legend-item">
-                    <span class="legend-symbol symbol-domain"></span>
-                    <span class="legend-text">
-                        <strong>Study Boundary</strong>
-                        <small>WIO Domain: [38°E–80°E, 15°S–15°N]</small>
-                    </span>
-                </div>
-            </div>
-        </section>
-    </main>
-
-    <!-- About & Limitations Modal -->
-    <div class="modal-backdrop" id="aboutModal" style="display: none;">
-        <div class="modal-window">
-            <div class="modal-header">
-                <h2>About OCEANIX & Public Limitations</h2>
-                <button class="modal-close-btn" id="closeAboutModalBtn">&times;</button>
-            </div>
-            <div class="modal-body">
-                <h3>Scientific Background & Purpose</h3>
-                <p>
-                    OCEANIX is an educational decision-support engineering prototype designed to evaluate the practical feasibility of using real marine environmental data to estimate fishing-zone suitability.
-                </p>
-
-                <h3>Data Sources & Provenance</h3>
-                <ul>
-                    <li><strong>NOAA / NCEI Accession 0306675:</strong> 15 years (2005–2019) of Western Indian Ocean Skipjack tuna catch records compiled by the Indian Ocean Tuna Commission (IOTC) and paired with 12 Copernicus Marine physical/biogeochemical ocean variables.</li>
-                    <li><strong>INCOIS PFZ Advisories:</strong> Operational Potential Fishing Zone advisories issued by the Indian National Centre for Ocean Information Services (Ministry of Earth Sciences, GoI) for the Karnataka coastal sector.</li>
-                </ul>
-
-                <h3>Rigorous Evaluation Protocol</h3>
-                <p>
-                    The machine learning model was trained strictly on data from <strong>2005 to 2015</strong> and evaluated on an unseen, frozen <strong>2016 to 2019 holdout partition</strong>. The Random Forest ensemble outperforms the dummy baseline across MAE, RMSE, and $R^2$.
-                </p>
-
-                <div class="alert-box alert-warning">
-                    <h4>Ethical Guardrails & Disclaimers</h4>
-                    <ul>
-                        <li><strong>Not a Guarantee of Catch:</strong> Environmental suitability estimates reflect statistical similarity to historical commercial catch conditions; they do not guarantee fish presence.</li>
-                        <li><strong>Not a Navigational Tool:</strong> OCEANIX does not assess maritime hazards, waves, cyclones, or sea-state safety. Fishers must always consult official IMD/INCOIS forecasts.</li>
-                        <li><strong>Geographic Boundary:</strong> The model is calibrated for the Western Indian Ocean pelagic fishery and cannot be extrapolated to nearshore artisanal fisheries.</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn-primary" id="modalDismissBtn">Understood</button>
-            </div>
-        </div>
+  <header class="topbar">
+    <a class="brand" href="#home" data-route="home" aria-label="OCEANIX home">
+      <span class="brand-mark"><svg><use href="#i-waves"/></svg></span>
+      <span class="brand-copy"><strong>OCEANIX</strong><small>Marine intelligence</small></span>
+    </a>
+    <div class="topbar-meta">
+      <span id="serviceStatus" class="status-pill"><i></i><span>Connecting to data</span></span>
+      <a class="official-link" href="https://www.incois.gov.in/MarineFisheries/PfzAdvisory" target="_blank" rel="noreferrer">INCOIS ↗</a>
+      <button class="avatar-button" type="button" data-route="settings" aria-label="Open settings">A</button>
     </div>
+  </header>
 
-    <!-- Leaflet JS -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-    <!-- App JS -->
-    <script src="js/app.js"></script>
+  <div class="app-layout">
+    <aside class="desktop-sidebar">
+      <div class="sidebar-caption">YOUR OCEAN</div>
+      <nav class="side-nav" aria-label="Main navigation">
+        <button class="nav-item active" data-route="home"><svg><use href="#i-home"/></svg>Home</button>
+        <button class="nav-item" data-route="find"><svg><use href="#i-search"/></svg>Find zones</button>
+        <button class="nav-item" data-route="map"><svg><use href="#i-map"/></svg>Advisory map</button>
+        <button class="nav-item" data-route="history"><svg><use href="#i-history"/></svg>History & saved</button>
+      </nav>
+      <div class="sidebar-caption sidebar-caption-spaced">EXPLORE</div>
+      <nav class="side-nav" aria-label="More pages">
+        <button class="nav-item" data-route="conditions"><svg><use href="#i-waves"/></svg>Ocean conditions</button>
+        <button class="nav-item" data-route="insights"><svg><use href="#i-chart"/></svg>Insights</button>
+        <button class="nav-item" data-route="about"><svg><use href="#i-info"/></svg>About OCEANIX</button>
+        <button class="nav-item" data-route="settings"><svg><use href="#i-settings"/></svg>Settings</button>
+      </nav>
+      <div class="sidebar-source"><span class="source-wave"><svg><use href="#i-waves"/></svg></span><strong>Data-led decisions</strong><p>Official advisories and their source dates, kept clear on every screen.</p></div>
+      <div class="sidebar-foot">Educational prototype · v0.3</div>
+    </aside>
+
+    <main class="main-content">
+      <div class="data-banner" id="dataBanner"><span class="banner-icon">i</span><span id="bannerText">Loading advisory source and validity…</span><a href="https://www.incois.gov.in/MarineFisheries/PfzAdvisory" target="_blank" rel="noreferrer">Check INCOIS ↗</a></div>
+
+      <section class="view active" data-view="home">
+        <div class="welcome-row">
+          <div><p class="eyebrow">YOUR DAILY OCEAN BRIEF</p><h1>Find today’s advisory zones</h1><p class="muted lead">Explore official INCOIS fishing-zone advisories near a region you choose.</p></div>
+          <div class="date-chip"><svg><use href="#i-calendar"/></svg><span><small>SNAPSHOT DATE</small><strong id="homeSnapshotDate">Loading…</strong></span></div>
+        </div>
+        <section class="hero-card">
+          <div class="hero-content"><span class="hero-kicker"><span class="live-dot"></span> OFFICIAL PFZ ADVISORY</span><h2>Explore the sea with better information.</h2><p>Choose a coastal sector or use your current location to find nearby INCOIS advisory points.</p><button class="button button-primary" data-route="find">Find fishing zones <svg><use href="#i-arrow"/></svg></button></div>
+          <div class="hero-art" aria-hidden="true"><div class="orbit orbit-one"></div><div class="orbit orbit-two"></div><div class="hero-globe"><svg><use href="#i-waves"/></svg></div><span class="globe-dot dot-one"></span><span class="globe-dot dot-two"></span><span class="globe-dot dot-three"></span></div>
+        </section>
+        <div class="section-heading"><div><p class="eyebrow">SNAPSHOT AT A GLANCE</p><h2>Advisory overview</h2></div><button class="text-button" data-route="map">Open map <svg><use href="#i-arrow"/></svg></button></div>
+        <div class="metric-grid">
+          <article class="metric-card"><span class="metric-icon cyan"><svg><use href="#i-pin"/></svg></span><span class="metric-label">Advisory locations</span><strong id="homePointCount">—</strong><small>in the saved INCOIS snapshot</small></article>
+          <article class="metric-card"><span class="metric-icon aqua"><svg><use href="#i-map"/></svg></span><span class="metric-label">Coastal sectors</span><strong id="homeSectorCount">—</strong><small>covered in this snapshot</small></article>
+          <article class="metric-card"><span class="metric-icon green"><svg><use href="#i-calendar"/></svg></span><span class="metric-label">Advisory validity</span><strong class="metric-date" id="homeValidity">—</strong><small>check the source before setting out</small></article>
+        </div>
+        <div class="home-columns">
+          <section class="panel recent-panel"><div class="panel-title-row"><div><p class="eyebrow">YOUR ACTIVITY</p><h2>Recent searches</h2></div><button class="text-button" data-route="history">View all</button></div><div id="homeRecent" class="recent-list"><div class="empty-state compact">Your searches will appear here.</div></div></section>
+          <section class="panel how-panel"><div class="panel-title-row"><div><p class="eyebrow">HOW IT WORKS</p><h2>Three simple steps</h2></div></div><ol class="steps-list"><li><span>01</span><div><strong>Choose your area</strong><small>Pick a coastal sector or locate yourself.</small></div></li><li><span>02</span><div><strong>Explore advisories</strong><small>See official INCOIS zones around that area.</small></div></li><li><span>03</span><div><strong>Check the details</strong><small>Review direction, distance, depth and validity.</small></div></li></ol></section>
+        </div>
+        <div class="interpretation-note"><span>i</span><p><strong>What the map colors mean</strong><br>The heat layer shows where INCOIS advisory points cluster. It is not a catch probability or an OCEANIX prediction.</p><button class="text-button" data-route="about">Learn more</button></div>
+      </section>
+
+      <section class="view" data-view="find">
+        <div class="page-heading"><button class="back-button" data-route="home" aria-label="Back to home">←</button><div><p class="eyebrow">FIND ADVISORIES</p><h1>Choose your area</h1><p class="muted">Search official advisory locations around a region.</p></div></div>
+        <div class="find-layout">
+          <section class="panel find-form">
+            <div class="form-step"><span class="step-number">1</span><div><h2>Select a coastal sector</h2><p>Or use your device location to search nearby advisories.</p></div></div>
+            <label class="field-label" for="findSector">Coastal region</label>
+            <select id="findSector" class="input"><option value="">All coastal sectors</option></select>
+            <label class="field-label" for="findCentre">Optional landing centre</label>
+            <input id="findCentre" class="input" type="search" placeholder="Search a centre, e.g. Mangaluru" autocomplete="off" list="centreOptions"><datalist id="centreOptions"></datalist>
+            <button id="useLocation" class="button button-outline location-button" type="button"><svg><use href="#i-crosshair"/></svg><span>Use my current location</span><small>Location stays in this browser session</small></button>
+            <div id="locationStatus" class="inline-status" aria-live="polite"></div>
+            <div class="form-divider"><span>SEARCH RANGE</span></div>
+            <label class="field-label" for="searchRadius">Look for advisories within</label>
+            <div class="range-row"><select id="searchRadius" class="input"><option value="25">25 km</option><option value="50">50 km</option><option value="100" selected>100 km</option><option value="250">250 km</option><option value="500">500 km</option></select><span class="range-hint">from your selected area</span></div>
+            <label class="field-label" for="snapshotDateSelect">Advisory date</label>
+            <select id="snapshotDateSelect" class="input" aria-describedby="snapshotDateHelp"><option value="">Loading available dates…</option></select>
+            <div class="date-source-card"><svg><use href="#i-calendar"/></svg><div><small>SNAPSHOT VALIDITY</small><strong id="findSnapshotDate">Loading…</strong><span id="findSnapshotValidity">Validity —</span></div><span class="snapshot-tag">SAVED DATA</span></div>
+            <p id="snapshotDateHelp" class="fine-print date-help">Only dates present in the saved dataset can be selected.</p>
+            <button id="findZonesButton" class="button button-primary full-button" type="button">Find advisory zones <svg><use href="#i-arrow"/></svg></button>
+            <p class="fine-print">This is a saved advisory snapshot, not a live feed. The date shown is the only available date in this dataset.</p>
+          </section>
+          <section class="panel find-help"><div class="mini-map-preview"><div class="mini-contour contour-a"></div><div class="mini-contour contour-b"></div><div class="mini-contour contour-c"></div><span class="mini-pin"><svg><use href="#i-pin"/></svg></span><span class="mini-label">INDIAN OCEAN</span></div><div class="find-help-copy"><span class="help-icon"><svg><use href="#i-info"/></svg></span><h2>How location search works</h2><p>Select a coastal sector, or allow location access to find advisory coordinates nearest to you. We compare your location with the dated INCOIS advisory points in this snapshot.</p><div class="privacy-note"><span class="privacy-dot"></span><span>Your device location is used only for the search. We do not send it to the data API or save its coordinates.</span></div></div></section>
+        </div>
+        <section id="findResults" class="panel results-panel" hidden><div class="panel-title-row"><div><p class="eyebrow">MATCHING OFFICIAL DATA</p><h2 id="resultsTitle">Advisories near your area</h2><p class="muted" id="resultsSubhead"></p></div><button class="button button-outline" data-route="map">View on map <svg><use href="#i-arrow"/></svg></button></div><div id="resultsList" class="results-list"></div></section>
+      </section>
+
+      <section class="view map-view" data-view="map">
+        <div class="map-view-header"><div><p class="eyebrow">GEOSPATIAL ADVISORY VIEW</p><h1>Explore advisory locations</h1><p class="muted" id="mapSubtitle">Official INCOIS advisory points · dated snapshot</p></div><div class="map-header-actions"><select id="mapSector" class="input compact-input" aria-label="Filter map by sector"><option value="">All sectors</option></select><button id="fitMap" class="button button-outline" type="button">Show all</button></div></div>
+        <section class="map-card"><div class="map-tools"><div class="map-mode-label"><span class="live-dot"></span><span><strong>INCOIS advisory concentration</strong><small>Shading shows clusters of advisory points</small></span></div><div class="layer-toggles"><label class="toggle-line"><input id="heatToggle" type="checkbox" checked><span class="switch"></span>Concentration</label><label class="toggle-line"><input id="pointsToggle" type="checkbox" checked><span class="switch"></span>Points</label></div></div><div class="map-stage"><div id="leafletMap" role="application" aria-label="Interactive map of INCOIS advisory locations"></div><div id="mapMessage" class="map-message" hidden></div><div class="heat-legend"><strong>ADVISORY CONCENTRATION</strong><div class="legend-gradient"></div><div class="legend-scale"><span>Fewer points</span><span>More points</span></div><small>Not a catch probability</small></div><button id="mapLocate" class="map-locate" type="button" aria-label="Use my current location"><svg><use href="#i-crosshair"/></svg></button></div><div class="map-attribution-row"><span><i class="legend-point"></i> Official INCOIS PFZ advisory point</span><span>Base map © OpenStreetMap</span><a href="https://www.incois.gov.in/MarineFisheries/PfzWebGis" target="_blank" rel="noreferrer">Open INCOIS WebGIS ↗</a></div></section>
+        <div class="map-bottom-grid"><section class="panel map-selection"><div class="panel-title-row"><div><p class="eyebrow">SELECTED ADVISORY</p><h2 id="selectedTitle">Choose a point on the map</h2></div><button id="saveAreaButton" class="icon-action" type="button" title="Save this region"><svg><use href="#i-bookmark"/></svg></button></div><div id="selectedDetails" class="selected-details muted">Tap a marker to inspect its official source details.</div></section><section class="panel map-explainer"><div class="panel-title-row"><div><p class="eyebrow">READ THE LAYER</p><h2>What the shading shows</h2></div></div><p>Color intensity comes from nearby advisory point locations in this snapshot. It describes advisory concentration only; it does not estimate fish abundance, catch likelihood, or safe navigation.</p><button class="text-button" data-route="about">About the data <svg><use href="#i-arrow"/></svg></button></section></div>
+      </section>
+
+      <section class="view" data-view="result">
+        <div class="page-heading"><button class="back-button" data-route="find" aria-label="Back to search">←</button><div><p class="eyebrow">SEARCH RESULTS</p><h1>Advisory zones found</h1><p class="muted" id="resultLocationLabel">Based on the selected region and snapshot.</p></div></div>
+        <div class="result-summary-card"><span class="result-fish">≈</span><div><span class="hero-kicker">OFFICIAL INCOIS DATA</span><h2 id="resultSummaryTitle">Advisory locations in your area</h2><p id="resultSummaryText">—</p></div><span id="resultCount" class="result-count">—</span></div>
+        <div class="result-columns"><section class="panel result-map-card"><div class="panel-title-row"><div><p class="eyebrow">ADVISORY MAP</p><h2>Nearby locations</h2></div><button class="text-button" data-route="map">Full map ↗</button></div><div class="result-mini-map"><div id="resultMapMini" aria-hidden="true"></div></div><div class="result-mini-legend"><span class="legend-point"></span> INCOIS advisory point <span class="heat-key"></span> Advisory concentration</div></section><section class="panel result-list-panel"><div class="panel-title-row"><div><p class="eyebrow">OFFICIAL LOCATIONS</p><h2>Advisories in range</h2></div></div><div id="resultAdvisories" class="advisory-list"></div></section></div>
+        <div class="interpretation-note"><span>i</span><p><strong>These are advisories, not catch guarantees.</strong><br>The colored layer displays advisory point concentration only. Always confirm the latest official source and relevant sea-safety information.</p></div>
+      </section>
+
+      <section class="view" data-view="conditions">
+        <div class="page-heading"><button class="back-button" data-route="more" aria-label="Back to more">←</button><div><p class="eyebrow">OCEAN DATA</p><h1>Ocean conditions</h1><p class="muted">Environmental context for your selected region.</p></div></div>
+        <section class="panel conditions-picker"><label for="conditionsLocation"><span class="eyebrow">CHOOSE AN INCOIS ADVISORY LOCATION</span></label><div class="conditions-picker-row"><select id="conditionsLocation" class="input"><option value="">Choose a coastal advisory point</option></select><button id="refreshConditions" class="button button-primary" type="button" disabled>Load readings</button></div><p class="muted" id="conditionsLocationHint">Select an official point to query environmental products at its coordinates.</p></section>
+        <div class="conditions-status" id="conditionsStatus" role="status"><span class="status-orb" id="conditionsStatusIcon">i</span><div><strong id="conditionsStatusTitle">Choose a location</strong><p id="conditionsStatusText">The service will request point-specific fields from INCOIS OSF. Satellite chlorophyll is shown from the latest INCOIS ABIS map when published.</p></div></div>
+        <div class="metric-grid conditions-grid">
+          <article class="metric-card disabled-metric" data-env-metric="sst"><span class="metric-icon cyan"><svg><use href="#i-waves"/></svg></span><span class="metric-label">Sea surface temperature</span><strong>—</strong><small>INCOIS OSF forecast</small></article>
+          <article class="metric-card disabled-metric" data-env-metric="current"><span class="metric-icon aqua"><svg><use href="#i-map"/></svg></span><span class="metric-label">Surface current speed</span><strong>—</strong><small>INCOIS OSF forecast</small></article>
+          <article class="metric-card disabled-metric" data-env-metric="mld"><span class="metric-icon green"><svg><use href="#i-waves"/></svg></span><span class="metric-label">Mixed layer depth</span><strong>—</strong><small>INCOIS OSF forecast</small></article>
+          <article class="metric-card disabled-metric" data-env-metric="d20"><span class="metric-icon violet"><svg><use href="#i-chart"/></svg></span><span class="metric-label">D20 depth</span><strong>—</strong><small>INCOIS OSF forecast</small></article>
+          <article class="metric-card disabled-metric" data-env-metric="wind"><span class="metric-icon cyan"><svg><use href="#i-crosshair"/></svg></span><span class="metric-label">Wind speed</span><strong>—</strong><small>INCOIS OSF forecast</small></article>
+          <article class="metric-card disabled-metric" data-env-metric="wave_height"><span class="metric-icon aqua"><svg><use href="#i-waves"/></svg></span><span class="metric-label">Significant wave height</span><strong>—</strong><small>INCOIS OSF forecast</small></article>
+          <article class="metric-card disabled-metric" data-env-metric="wave_period"><span class="metric-icon green"><svg><use href="#i-history"/></svg></span><span class="metric-label">Wave period</span><strong>—</strong><small>INCOIS OSF forecast</small></article>
+          <article class="metric-card disabled-metric" data-env-metric="chlorophyll_a"><span class="metric-icon green"><svg><use href="#i-chart"/></svg></span><span class="metric-label">Chlorophyll-a point value</span><strong>Map only</strong><small>INCOIS daily satellite product</small></article>
+        </div>
+        <section class="panel chlorophyll-panel" id="chlorophyllPanel" hidden><div class="panel-title-row"><div><p class="eyebrow">SATELLITE OCEAN COLOUR</p><h2>INCOIS chlorophyll-a map</h2><p id="chlorophyllDate" class="muted">Daily product</p></div><a id="chlorophyllSource" class="text-button" href="https://incois.gov.in/site/services/hab_products.jsp" target="_blank" rel="noreferrer">Source ↗</a></div><a id="chlorophyllImageLink" href="https://incois.gov.in/site/services/hab_products.jsp" target="_blank" rel="noreferrer"><img id="chlorophyllImage" alt="Latest INCOIS daily chlorophyll-a satellite map" loading="lazy"></a><img id="chlorophyllColorbar" class="chlorophyll-colorbar" alt="Chlorophyll-a map scale" loading="lazy"><p class="muted">This is a regional satellite map. Cloud gaps may occur; the public product currently does not return a verified numeric reading for the selected pixel.</p></section>
+        <section class="panel source-conditions"><p class="eyebrow">SOURCE & TIME</p><h2 id="environmentSourceTitle">INCOIS Ocean State Forecast</h2><p id="environmentMeta">Readings load after you select an advisory point. Forecast values are labelled separately from satellite observations, and each result includes its timestamp.</p><a class="button button-outline" href="https://iioe-2.incois.gov.in/oceanservices/osfforecast.jsp" target="_blank" rel="noreferrer">Open INCOIS Ocean State Forecast ↗</a></section>
+      </section>
+
+      <section class="view" data-view="insights">
+        <div class="page-heading"><button class="back-button" data-route="more" aria-label="Back to more">←</button><div><p class="eyebrow">DATA OVERVIEW</p><h1>Insights</h1><p class="muted">Patterns in the available advisory snapshot.</p></div></div>
+        <div class="insight-callout"><span><svg><use href="#i-chart"/></svg></span><div><strong>Snapshot summary, not an ocean trend</strong><p>Only one dated snapshot is currently loaded. Charts below describe advisory records, not fish abundance or catch success.</p></div></div>
+        <div class="insights-grid"><section class="panel chart-panel"><div class="panel-title-row"><div><p class="eyebrow">SECTOR COMPARISON</p><h2>Advisory locations by sector</h2></div><span class="chart-date" id="insightsDate">—</span></div><div id="sectorChart" class="bar-chart"></div></section><section class="panel chart-panel"><div class="panel-title-row"><div><p class="eyebrow">MOST LISTED</p><h2>Landing centres</h2></div></div><div id="centreChart" class="bar-chart"></div></section></div>
+        <section class="panel trend-empty"><span class="metric-icon cyan"><svg><use href="#i-history"/></svg></span><div><h2>Trends need more snapshots</h2><p>Historical comparisons will appear when dated advisory snapshots are collected and checked across multiple days.</p></div><span class="empty-chart-lines" aria-hidden="true">〰</span></section>
+      </section>
+
+      <section class="view" data-view="history">
+        <div class="page-heading"><div><p class="eyebrow">YOUR SAVED ITEMS</p><h1>History & saved regions</h1><p class="muted">Search history is stored on this device.</p></div><button id="clearHistory" class="button button-outline" type="button">Clear history</button></div>
+        <div class="history-tabs"><button class="history-tab active" data-history-tab="searches">Recent searches</button><button class="history-tab" data-history-tab="saved">Saved regions</button></div>
+        <section id="historySearches" class="history-list"></section><section id="historySaved" class="history-list" hidden></section>
+        <div class="privacy-footnote"><svg><use href="#i-info"/></svg><span>Search history and saved sector names stay in your browser’s local storage. Precise device coordinates are not saved.</span></div>
+      </section>
+
+      <section class="view" data-view="more">
+        <div class="page-heading"><div><p class="eyebrow">OCEANIX</p><h1>Explore more</h1><p class="muted">More data views and app information.</p></div></div>
+        <div class="more-grid"><button class="more-card" data-route="conditions"><span class="more-icon cyan"><svg><use href="#i-waves"/></svg></span><span><strong>Ocean conditions</strong><small>Environmental data availability</small></span><svg class="more-arrow"><use href="#i-arrow"/></svg></button><button class="more-card" data-route="insights"><span class="more-icon green"><svg><use href="#i-chart"/></svg></span><span><strong>Insights & analytics</strong><small>Explore snapshot summaries</small></span><svg class="more-arrow"><use href="#i-arrow"/></svg></button><button class="more-card" data-route="about"><span class="more-icon aqua"><svg><use href="#i-info"/></svg></span><span><strong>About OCEANIX</strong><small>Sources, methods and limitations</small></span><svg class="more-arrow"><use href="#i-arrow"/></svg></button><button class="more-card" data-route="settings"><span class="more-icon violet"><svg><use href="#i-settings"/></svg></span><span><strong>Settings</strong><small>Appearance and location access</small></span><svg class="more-arrow"><use href="#i-arrow"/></svg></button></div>
+      </section>
+
+      <section class="view" data-view="about">
+        <div class="page-heading"><button class="back-button" data-route="more" aria-label="Back to more">←</button><div><p class="eyebrow">ABOUT THIS PROJECT</p><h1>About OCEANIX</h1><p class="muted">Marine intelligence & decision support · educational prototype</p></div></div>
+        <section class="about-hero panel"><span class="about-logo"><svg><use href="#i-waves"/></svg></span><div><h2>OCEANIX</h2><p>Explore source-backed marine advisories and datasets.</p></div></section>
+        <div class="about-grid"><article class="panel"><p class="eyebrow">HOW IT WORKS</p><h2>Official data, clearly labelled</h2><p>This version reads a dated set of INCOIS Potential Fishing Zone advisory exports, validates their coordinates, and displays advisory points on a map. The concentration layer shades clusters of those points.</p></article><article class="panel"><p class="eyebrow">DATA SOURCE</p><h2>INCOIS products</h2><p>Advisory locations come from the official INCOIS PFZ export. Ocean Conditions queries INCOIS OSF model forecast fields by selected advisory coordinates and shows the dated ABIS chlorophyll-a satellite map.</p><a class="text-button" href="https://www.incois.gov.in/MarineFisheries/PfzAdvisory" target="_blank" rel="noreferrer">Open official INCOIS source ↗</a></article><article class="panel full-span"><p class="eyebrow">LIMITATIONS & RESPONSIBLE USE</p><h2>What this prototype does not tell you</h2><ul class="limitation-list"><li>The concentration heat layer is not a catch probability, fish-count estimate, or OCEANIX prediction.</li><li>An advisory does not guarantee catch, and an area without a listed advisory does not mean fish are absent.</li><li>The local PFZ snapshot is dated and does not automatically update. Check the official source for a newer advisory.</li><li>OSF environmental values are forecasts; ABIS is a regional satellite map, not a selected-pixel reading. Products can be delayed or unavailable.</li><li>This app is not a navigation or sea-safety tool. Follow official safety guidance.</li></ul></article></div>
+      </section>
+
+      <section class="view" data-view="settings">
+        <div class="page-heading"><button class="back-button" data-route="more" aria-label="Back to more">←</button><div><p class="eyebrow">PREFERENCES</p><h1>Settings</h1><p class="muted">Adjust how OCEANIX looks on this device.</p></div></div>
+        <section class="settings-card panel"><div class="setting-row"><span class="setting-icon"><svg><use href="#i-settings"/></svg></span><span class="setting-copy"><strong>App appearance</strong><small>Choose your preferred theme</small></span><div class="segmented-control" role="group" aria-label="App appearance"><button data-theme-choice="dark" class="selected">Dark</button><button data-theme-choice="light">Light</button><button data-theme-choice="system">System</button></div></div><div class="setting-row"><span class="setting-icon"><svg><use href="#i-pin"/></svg></span><span class="setting-copy"><strong>Location access</strong><small>Requested only when you tap “Use my current location”</small></span><button id="settingsLocation" class="button button-outline small-button">Check access</button></div><div class="setting-row"><span class="setting-icon"><svg><use href="#i-waves"/></svg></span><span class="setting-copy"><strong>Advisory notifications</strong><small>Alerts need a live update service, which is not connected</small></span><span class="disabled-badge">Not available</span></div><div class="setting-row"><span class="setting-icon"><svg><use href="#i-info"/></svg></span><span class="setting-copy"><strong>Language</strong><small>Interface language</small></span><span class="setting-value">English</span></div></section>
+        <div id="settingsMessage" class="inline-status" aria-live="polite"></div>
+      </section>
+
+      <footer class="app-footer"><span>OCEANIX · Educational prototype</span><span>Verify advisory dates with official INCOIS</span></footer>
+    </main>
+  </div>
+
+  <nav class="mobile-nav" aria-label="Bottom navigation"><button class="mobile-nav-item active" data-route="home"><svg><use href="#i-home"/></svg><span>Home</span></button><button class="mobile-nav-item" data-route="find"><svg><use href="#i-search"/></svg><span>Find</span></button><button class="mobile-nav-item" data-route="map"><svg><use href="#i-map"/></svg><span>Map</span></button><button class="mobile-nav-item" data-route="history"><svg><use href="#i-history"/></svg><span>History</span></button><button class="mobile-nav-item" data-route="more"><svg><use href="#i-more"/></svg><span>More</span></button></nav>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
-

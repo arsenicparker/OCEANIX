@@ -1,38 +1,35 @@
-# OCEANIX Machine Learning Plan
+# OCEANIX AIML Plan
 
-*Document Version 1.0 — Milestone M3 (Machine Learning)*  
-*Prepared strictly according to Project Blueprint Section 10.*
+*Updated 9 November 2026. Model development is intentionally gated on data evidence.*
 
----
+## Current stage: no INCOIS model is trained
 
-## 1. Task Definition
-- **Task Type**: Supervised Regression with log-transformed target.
-- **Target Variable**: `skipjack_catch_biomass` (Skipjack tuna catch biomass in Metric Tons per monthly $0.5^\circ$ cell).
-- **Study Domain**: Western Indian Ocean (WIO), bounding box [38.75°E–79.75°E, -14.75°S–14.75°N].
-- **Observation Unit**: Grid cell / monthly aggregate with paired Copernicus oceanographic reanalysis.
+The web playground reads official INCOIS PFZ advisory points and supports map/table exploration. It does not accept user-supplied ocean measurements and does not return a model prediction. The single 9 Nov 2026 snapshot has no historical sequence, no matched environmental features, and no defensible negative/comparison labels; it cannot train or evaluate a supervised model.
 
----
+## Preferred INCOIS learning task (conditional)
 
-## 2. Feature Architecture
+If a historical INCOIS archive and matching environmental data can be obtained, first consider estimating the historical INCOIS advisory pattern for a defined sector, location grid, and time window. The target must be described as an **INCOIS advisory label/pattern**, not actual fish presence or expected catch.
 
-| Feature Group | Features | Role & Justification |
-|---|---|---|
-| **Spatio-Temporal** | `longitude`, `latitude`, `month` | Captures geographic coordinates and seasonal cycles. |
-| **Thermal & Physical** | `thetao` (SST), `bottomT`, `so` (Salinity), `mlotst` (MLD), `zos` (SSH) | Defines ocean physical structures, thermoclines, and water mass boundaries. |
-| **Dynamic Currents** | `uo` (Zonal current), `vo` (Meridional current) | Models advection, convergence zones, and surface flow. |
-| **Biogeochemical & Trophic** | `chl` (Chlorophyll-a), `phyc` (Phytoplankton), `nppv` (NPP), `o2` (Oxygen), `ph` | Measures primary productivity, biological aggregation, and dissolved oxygen availability. |
+Before choosing the target or algorithm, establish:
 
----
+1. Which historical advisory records can be retrieved in machine-readable form, for which sectors and dates, and under what use terms.
+2. Which environmental variables have suitable temporal and spatial coverage for those same records.
+3. How PFZ point/line advisories map to grid cells or candidate locations, with resolution and tolerances documented.
+4. How comparison examples are sampled. A location not included in a PFZ advisory is an unlisted advisory cell, not verified fish absence.
+5. Whether there are enough independent dates, sectors, and labels for leakage-safe evaluation.
 
-## 3. Preprocessing & Leakage Prevention
-- **Imputation**: Numeric median imputation fitted **exclusively** on the training partition via `sklearn.compose.ColumnTransformer`.
-- **Target Transformation**: `TransformedTargetRegressor` applying $y' = \ln(1 + y)$ during training and $\hat{y} = \exp(\hat{y}') - 1$ at inference. This stabilizes variance across extreme catch values without creating artificial negative predictions.
-- **Partitioning**: Strictly chronological split at cutoff year $\le 2015$ (Training: 2005–2015; Holdout Test: 2016–2019). No random k-fold splitting across dates to prevent spatial/temporal autocorrelation leakage.
+If any item fails, do not train an ML model merely to fill the UI. Narrow the claim or pause the model stage.
 
----
+## Future modeling protocol (only after an audit GO)
 
-## 4. Modeling Sequence & Acceptance Thresholds
-1. **Baseline Model**: `DummyRegressor(strategy='median')` provides the required benchmark.
-2. **Primary Candidate**: `RandomForestRegressor(n_estimators=100, max_depth=12, min_samples_leaf=5)` to capture nonlinear interactions between physical variables and tuna aggregation.
-3. **Acceptance Threshold**: The primary candidate must outperform the baseline on held-out test MAE and RMSE before deployment to the API.
+- Freeze a time-based holdout; group repeated dates/locations as appropriate.
+- Build a simple baseline first, then one justified tabular model.
+- Fit imputation and feature processing only on training data.
+- Report target counts and coverage by split, class-aware metrics where applicable, and performance by time/sector where sample sizes allow.
+- Keep source records and transformation logs reproducible.
+- Show probabilities only if calibration is evaluated; otherwise show the model’s target output without a confidence percentage.
+- Evaluate the exact intended map/display use case. Do not extrapolate from an WIO tuna model to Karnataka coastal fisheries.
 
+## WIO model is a separate historical experiment
+
+The repository contains a prior WIO skipjack regression plan based on NOAA/NCEI 0306675, with 2005–2015 training and 2016–2019 holdout. It is preserved as a separate historical route. It is not a substitute for Karnataka INCOIS advisories and is not wired into the current app. Any future use requires an explicit scope decision and an available serialized model artifact.

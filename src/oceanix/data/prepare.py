@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -39,6 +40,192 @@ ENV_FEATURE_COLUMNS = [
     "bottomT",
     "zos",
 ]
+
+INCOIS_SECTORS = {
+    "SEC001": "Gujarat",
+    "SEC002": "Maharashtra",
+    "SEC003": "Goa",
+    "SEC004": "Karnataka",
+    "SEC005": "Kerala",
+    "SEC006": "South Tamil Nadu",
+    "SEC007": "North Tamil Nadu",
+    "SEC008": "South Andhra Pradesh",
+    "SEC009": "North Andhra Pradesh",
+    "SEC010": "Odisha",
+    "SEC011": "West Bengal",
+    "SEC012": "Andaman",
+    "SEC013": "Nicobar",
+    "SEC014": "Lakshadweep",
+}
+
+
+def _parse_incois_coordinate(value: Any) -> float:
+    """Parse INCOIS coordinates in either DMS or decimal-degree form."""
+    text = str(value).strip().upper()
+    if not text or text == "NAN":
+        raise ValueError("Empty INCOIS coordinate")
+    direction = text[-1] if text[-1] in {"N", "S", "E", "W"} else None
+    coordinate_text = text[:-1].strip() if direction else text
+    parts = coordinate_text.split()
+    if len(parts) >= 3:
+        result = dms_to_dd(text)
+    else:
+        result = float(parts[0])
+        if direction in {"S", "W"}:
+            result = -abs(result)
+        elif direction in {"N", "E"}:
+            result = abs(result)
+    return result
+
+
+def _find_incois_header(df_raw: pd.DataFrame) -> int:
+    """Find the table header row across INCOIS spreadsheet export variants."""
+    for index, row in df_raw.iterrows():
+        if any(str(value).strip().lower() == "from the coast of" for value in row):
+            return int(index)
+    raise ValueError("Could not find the INCOIS PFZ table header")
+
+
+def prepare_incois_current_snapshot(
+    raw_dir: str | Path,
+    output_dir: str | Path,
+    manifest_path: str | Path | None = None,
+) -> pd.DataFrame:
+    """Combine dated official INCOIS sector exports into validated CSV and GeoJSON.
+
+    The snapshot export files are source artifacts and remain unchanged. This
+    parser supports both DMS and decimal-degree coordinates and skips spreadsheet
+    footer text rather than treating it as an advisory record.
+    """
+    raw_path = Path(raw_dir)
+    out_dir = Path(output_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    manifest: Dict[str, Any] = {}
+    if manifest_path and Path(manifest_path).exists():
+        manifest = json.loads(Path(manifest_path).read_text(encoding="utf-8-sig"))
+    manifest_sectors = {
+        item.get("sector"): item for item in manifest.get("sectors", [])
+    }
+
+    records: List[Dict[str, Any]] = []
+    discovered = sorted(raw_path.glob("INCOIS_PFZ_SEC*_*.xls"))
+    dated_files = [
+        path for path in discovered
+        if re.search(r"(SEC\d{3})_(\d{4}-\d{2}-\d{2})\.xls$", path.name)
+    ]
+    manifest_date = manifest.get("retrieved_local_date")
+    if manifest_date:
+        files = [path for path in dated_files if path.name.endswith(f"_{manifest_date}.xls")]
+    else:
+        latest_date = max(
+            re.search(r"(\d{4}-\d{2}-\d{2})\.xls$", path.name).group(1)
+            for path in dated_files
+        )
+        files = [path for path in dated_files if path.name.endswith(f"_{latest_date}.xls")]
+    if not files:
+        raise FileNotFoundError(f"No dated INCOIS sector exports found in {raw_path}")
+
+    for source_path in files:
+        match = re.search(r"(SEC\d{3})_(\d{4}-\d{2}-\d{2})\.xls$", source_path.name)
+        if not match:
+            continue
+        sector_code, snapshot_date = match.groups()
+        if sector_code not in INCOIS_SECTORS:
+            continue
+
+        df_raw = pd.read_excel(source_path, header=None)
+        header_index = _find_incois_header(df_raw)
+        columns = [str(value).strip().replace("\n", " ") for value in df_raw.iloc[header_index]]
+        data = df_raw.iloc[header_index + 1 :].copy()
+        data.columns = columns
+
+        header_text = " ".join(
+            str(value) for value in df_raw.iloc[:header_index].values.flatten() if pd.notna(value)
+        )
+        validity = re.search(
+            r"FORECAST\s+VALIDITY\s+FROM\s+(\d{1,2}\s+[A-Za-z]{3}\s+\d{4})\s+TO\s+(\d{1,2}\s+[A-Za-z]{3}\s+\d{4})",
+            header_text,
+            flags=re.IGNORECASE,
+        )
+        valid_from = pd.to_datetime(validity.group(1), format="%d %b %Y").date().isoformat() if validity else snapshot_date
+        valid_to = pd.to_datetime(validity.group(2), format="%d %b %Y").date().isoformat() if validity else None
+        source_meta = manifest_sectors.get(sector_code, {})
+
+        for _, row in data.iterrows():
+            landing = row.get("From the coast of")
+            if pd.isna(landing):
+                continue
+            try:
+                bearing = float(row.get("Bearing (deg)"))
+                distance_parts = [float(part.strip()) for part in str(row.get("Distance (km) From-To")).split("-")]
+                depth_parts = [float(part.strip()) for part in str(row.get("Depth (mtr) From-To")).split("-")]
+                latitude = _parse_incois_coordinate(row.get("Latitude (dms)", row.get("Latitude (dd)")))
+                longitude = _parse_incois_coordinate(row.get("Longitude (dms)", row.get("Longitude (dd)")))
+            except (TypeError, ValueError, KeyError):
+                # Spreadsheet footer rows can occupy the same columns as records.
+                continue
+
+            if not 0 <= bearing <= 360:
+                raise ValueError(f"Invalid bearing in {source_path.name}: {bearing}")
+            if not -90 <= latitude <= 90 or not -180 <= longitude <= 180:
+                raise ValueError(f"Invalid coordinates in {source_path.name}: {latitude}, {longitude}")
+
+            records.append(
+                {
+                    "advisory_id": f"INCOIS-{sector_code}-{snapshot_date}-{len(records) + 1:04d}",
+                    "sector_code": sector_code,
+                    "sector_name": INCOIS_SECTORS[sector_code],
+                    "landing_centre": str(landing).strip(),
+                    "direction": str(row.get("Direction", "")).strip(),
+                    "bearing_deg": bearing,
+                    "distance_min_km": distance_parts[0],
+                    "distance_max_km": distance_parts[1],
+                    "depth_min_m": depth_parts[0],
+                    "depth_max_m": depth_parts[1],
+                    "latitude_raw": str(row.get("Latitude (dms)", row.get("Latitude (dd)", ""))).strip(),
+                    "longitude_raw": str(row.get("Longitude (dms)", row.get("Longitude (dd)", ""))).strip(),
+                    "latitude": round(latitude, 6),
+                    "longitude": round(longitude, 6),
+                    "snapshot_date": snapshot_date,
+                    "forecast_valid_from": valid_from,
+                    "forecast_valid_to": valid_to,
+                    "source_updated_at": source_meta.get("updated"),
+                    "source_file": source_path.name,
+                    "source": "INCOIS Potential Fishing Zone Advisory",
+                }
+            )
+
+    clean_df = pd.DataFrame(records)
+    if clean_df.empty:
+        raise ValueError("No valid INCOIS PFZ records were parsed from the snapshot files")
+    clean_df = clean_df.drop_duplicates(subset=["sector_code", "landing_centre", "latitude", "longitude"])
+    clean_df.to_csv(out_dir / "incois_current_pfz.csv", index=False)
+
+    features = []
+    for record in clean_df.to_dict(orient="records"):
+        features.append(
+            {
+                "type": "Feature",
+                "geometry": {"type": "Point", "coordinates": [record["longitude"], record["latitude"]]},
+                "properties": {key: value for key, value in record.items() if key not in {"longitude", "latitude"}},
+            }
+        )
+    geojson = {
+        "type": "FeatureCollection",
+        "name": "INCOIS_Current_PFZ_Snapshot",
+        "features": features,
+        "metadata": {
+            "snapshot_date": manifest.get("retrieved_local_date"),
+            "source": manifest.get("source", "https://www.incois.gov.in/MarineFisheries/PfzAdvisory"),
+            "note": "A dated snapshot of official PFZ advisory locations; not a model prediction.",
+        },
+    }
+    (out_dir / "incois_current_pfz.geojson").write_text(
+        json.dumps(geojson, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    logger.info("Prepared %d current INCOIS advisory points from %d sector exports", len(clean_df), len(files))
+    return clean_df
 
 
 def prepare_incois_karnataka_pfz(

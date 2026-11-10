@@ -218,6 +218,78 @@ def audit_noaa_0306675(data_dir: str | Path) -> Dict[str, Any]:
     return summary
 
 
+def audit_incois_current_snapshot(
+    data_dir: str | Path,
+    interim_dir: str | Path,
+) -> Dict[str, Any]:
+    """Verify the dated INCOIS sector files and their prepared point collection."""
+    raw_path = Path(data_dir)
+    output_path = Path(interim_dir)
+    manifest_path = raw_path / "INCOIS_PFZ_sector_manifest_2026-11-09.json"
+    prepared_path = output_path / "incois_current_pfz.csv"
+    if not manifest_path.exists() or not prepared_path.exists():
+        return {
+            "status": "INCOMPLETE",
+            "message": "Current INCOIS manifest or prepared point file is missing.",
+        }
+
+    with open(manifest_path, "r", encoding="utf-8-sig") as f:
+        manifest = json.load(f)
+    prepared = pd.read_csv(prepared_path)
+    file_checks = []
+    missing_files = []
+    checksum_mismatches = []
+    for item in manifest.get("sectors", []):
+        if item.get("status") != "DOWNLOADED":
+            continue
+        source_file = raw_path / item["file"]
+        if not source_file.exists():
+            missing_files.append(item["file"])
+            continue
+        actual_hash = compute_sha256(source_file)
+        matches = actual_hash.lower() == str(item.get("sha256", "")).lower()
+        if not matches:
+            checksum_mismatches.append(item["file"])
+        file_checks.append(
+            {
+                "file": item["file"],
+                "expected_sha256": item.get("sha256"),
+                "actual_sha256": actual_hash,
+                "checksum_pass": matches,
+                "bytes": source_file.stat().st_size,
+            }
+        )
+
+    sectors = sorted(prepared["sector_name"].dropna().unique().tolist())
+    return {
+        "status": "PASS" if not missing_files and not checksum_mismatches and len(file_checks) == 14 else "FAIL",
+        "dataset_name": "INCOIS Potential Fishing Zone current-sector snapshot",
+        "snapshot_date": manifest.get("retrieved_local_date"),
+        "source_updated_at": (manifest.get("sectors") or [{}])[0].get("updated"),
+        "forecast_validity": (manifest.get("sectors") or [{}])[0].get("validity"),
+        "source": manifest.get("source"),
+        "coordinate_format": manifest.get("coordinate_format"),
+        "sector_file_count": len(file_checks),
+        "prepared_point_count": len(prepared),
+        "prepared_sector_count": len(sectors),
+        "sectors": sectors,
+        "coordinate_bounds": {
+            "latitude_min": float(prepared["latitude"].min()),
+            "latitude_max": float(prepared["latitude"].max()),
+            "longitude_min": float(prepared["longitude"].min()),
+            "longitude_max": float(prepared["longitude"].max()),
+        },
+        "missing_files": missing_files,
+        "checksum_mismatches": checksum_mismatches,
+        "files": file_checks,
+        "supervised_ml_ready": False,
+        "ml_readiness_note": (
+            "One dated advisory snapshot provides positive advisory locations only. "
+            "Historical labels and matched environmental features are still required for supervised ML."
+        ),
+    }
+
+
 def run_full_audit(raw_dir: str | Path) -> Dict[str, Any]:
     """Execute complete audit for all raw data candidates."""
     raw_path = Path(raw_dir)
@@ -225,15 +297,19 @@ def run_full_audit(raw_dir: str | Path) -> Dict[str, Any]:
 
     pfz_summary = audit_incois_karnataka_pfz(raw_path / "PfzForecast_KARNATAKA.xls")
     noaa_summary = audit_noaa_0306675(raw_path)
+    current_pfz_summary = audit_incois_current_snapshot(
+        raw_path, raw_path.parent / "interim"
+    )
 
     report = {
         "audit_version": "1.0",
         "incois_pfz_route_a": pfz_summary,
+        "incois_current_snapshot": current_pfz_summary,
         "noaa_0306675_route_b": noaa_summary,
         "synthesis": {
-            "route_a_decision": "NO-GO for standalone ML training (positive-only, 24 rows, no environmental features). GO for UI advisory parsing & map rendering.",
-            "route_b_decision": "GO for Machine Learning (66,520 rows, 19,866 observed catch events, 12 environmental features, 15 years history, 0 unmatched join rows).",
-            "final_project_scope": "Dual approach: Primary ML pipeline trained on NOAA Western Indian Ocean dataset (Route B); INCOIS Karnataka advisory integrated as real-world operational advisory overlay and parser (Route A).",
+            "incois_current_data_decision": "GO for a dated, all-sector advisory data explorer; NO-GO for standalone supervised ML until historical INCOIS advisory labels and matched environmental features are acquired and audited.",
+            "noaa_0306675_decision": "Verified historical WIO skipjack dataset retained as a reference/fallback; it is not used by the INCOIS current-data prototype.",
+            "final_project_scope": "Build and test a small INCOIS PFZ data playground first. Keep official advisory data visually distinct from future OCEANIX model outputs.",
         },
     }
     return report
@@ -257,8 +333,8 @@ if __name__ == "__main__":
     print("\n" + "=" * 70)
     print("OCEANIX DATASET AUDIT SUMMARY")
     print("=" * 70)
-    print(f"Route A (INCOIS Karnataka): {audit_result['synthesis']['route_a_decision']}")
-    print(f"Route B (NOAA 0306675 WIO):  {audit_result['synthesis']['route_b_decision']}")
+    print(f"INCOIS current PFZ snapshot: {audit_result['synthesis']['incois_current_data_decision']}")
+    print(f"NOAA/NCEI WIO reference:     {audit_result['synthesis']['noaa_0306675_decision']}")
     print(f"Project Execution Scope:   {audit_result['synthesis']['final_project_scope']}")
     print("=" * 70 + "\n")
 

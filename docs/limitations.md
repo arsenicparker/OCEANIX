@@ -1,35 +1,24 @@
-# OCEANIX Scientific & Operational Limitations
+# OCEANIX Limitations and Responsible Use
 
-*Document Version 1.0 — Milestone M3 & M4 (Evaluation & Limitations)*  
-*Prepared strictly according to Project Blueprint Section 5, 11, and 18.*
+## Current prototype
 
----
+- The current web app displays a saved INCOIS PFZ advisory snapshot retrieved 9 Nov 2026, with reported validity through 10 Nov 2026. It does not automatically refresh. Treat it as expired after the stated validity unless a new source export has been collected and checked.
+- The point records are official INCOIS advisory locations, not OCEANIX predictions, direct fish counts, or verified catch observations.
+- The INCOIS point snapshot contains no environmental covariate matrix and is not sufficient for supervised ML.
+- The saved WFS line export embeds 8 Nov 2026 as its source date and is kept separate from the 9 Nov advisory points.
+- The app uses online OpenStreetMap tiles. It requires no CARTO key, but the basemap will not load without internet access. Attribution is shown in the map.
 
-## 1. Executive Statement of Limitations
-OCEANIX is an educational decision-support engineering prototype. It is **not** an operational fishing forecast, official marine navigation system, or safety advisory. All predictions and visualizations must be interpreted strictly within their validated scientific boundaries.
+## Future AIML work
 
----
+- Historical PFZ advisory inclusion would be a proxy target for INCOIS advisory behavior, not fish absence/presence or catch volume.
+- Satellite-derived SST/chlorophyll can have cloud gaps, changing product definitions, and different spatial/time resolutions. Every join needs validation and a documented tolerance.
+- The current active INCOIS ERDDAP entries inspected for this revision do not expose the recent SST/chlorophyll coverage listed in broader holdings summaries; source access must be solved before claiming a live feature feed.
+- The WIO dataset is for historical skipjack catch/environment in the Western Indian Ocean. Its geography and species do not validate a Karnataka coastal model.
+- The prior WIO result note shows negative R² values. A local serialized artifact exists, but it is ignored by git and is not connected to this app; do not use it as a ready prediction service.
 
-## 2. Specific Technical Limitations
+## Safety and interpretation
 
-### 2.1 Marine Dynamic Complexity & Inter-Annual Variability
-- **Historical Nature**: The model is trained on historical Western Indian Ocean skipjack tuna catch data (2005–2019) from the Indian Ocean Tuna Commission (IOTC) and Copernicus Marine Service oceanographic reanalysis.
-- **Ocean Dynamics**: Marine ecosystems exhibit strong non-linear responses to global climatic phenomena such as the Indian Ocean Dipole (IOD) and El Niño-Southern Oscillation (ENSO). An environmental relationship observed in historical data may not hold under novel climate anomalies or seasonal shifts.
-
-### 2.2 Prediction Target Semantics: Not a Catch Guarantee
-- **Biomass Estimate vs. Fish Presence**: A higher estimated catch biomass indicates that oceanographic conditions (SST, salinity, currents, chlorophyll-a) resemble historical locations where commercial skipjack tuna aggregations occurred. It does **not** guarantee fish presence, school density, or harvest success on any specific day.
-- **No Direct Abundance Measurement**: Fisheries logbooks record landed catch under specific commercial fishing effort (purse-seine and longline), not absolute ecological stock abundance. Low or zero catch in a grid cell may reflect lack of fishing effort rather than fish absence.
-
-### 2.3 Geographic Scope & Non-Extrapolation
-- **Western Indian Ocean Scope**: The machine learning model is calibrated solely for the Western Indian Ocean domain [38.75°E–79.75°E, -14.75°S–14.75°N].
-- **No Coastal Karnataka Extrapolation**: The model cannot be used to predict nearshore coastal or artisanal fisheries off Karnataka or other Indian states. Coastal Karnataka advisories are provided purely as an operational parsing demonstration of official INCOIS advisory bulletins and must not be confused with machine learning predictions.
-
-### 2.4 Measurement Uncertainty & Cloud Cover
-- Satellite-derived ocean colour (chlorophyll-a) and thermal products are subject to sensor gaps and cloud-cover masking during monsoon seasons. Reanalysis models interpolate these missing fields, introducing model-based uncertainty.
-
----
-
-## 3. Ethical Guardrails & Responsible Use
-1. **Safety at Sea**: OCEANIX does **not** evaluate sea-state hazards, wave height, swell, wind speed, or storm warnings. Fishers must always consult official IMD/INCOIS ocean state forecasts and port advisories before putting to sea.
-2. **Attribution & Transparency**: Every map layer and API response explicitly differentiates between observed government advisories (INCOIS) and machine-learned estimates (OCEANIX model), displaying model version, date context, and uncertainty caveats.
-
+- OCEANIX is not an official marine advisory, catch guarantee, navigation system, or sea-safety service.
+- An advisory or model estimate does not establish that fish are present, absent, catchable, or safe to reach.
+- Users must consult current official INCOIS and other relevant safety advisories before making decisions at sea.
+- Every layer must show its source and date and distinguish official advisories, environmental observations, and any future model output.

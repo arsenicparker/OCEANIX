@@ -1,51 +1,53 @@
-# OCEANIX Project Scope & Scientific Boundaries
+# OCEANIX Project Scope
 
-*Document Version 1.0 — Milestone M1 (Data Audit)*  
-*Prepared strictly according to Project Blueprint Section 1, 4, 5, and 8.*
+*Updated 9 November 2026 to match the requested staged build.*
 
----
+## Product idea
 
-## 1. Chosen Route & Scope Definition
+OCEANIX is an AIML project whose first deliverable is a simple, mobile-friendly web data playground. It lets a user explore official INCOIS Potential Fishing Zone advisories by sector and landing centre, inspect their coordinates and source validity, and view the points on a map. The first deliverable proves the data-to-app path before the larger screenshot-inspired UI is built.
 
-Following the mandatory dataset audit (`docs/dataset_audit.md`), OCEANIX implements a defensible, multi-tier marine intelligence prototype:
+The data playground shows source advisory records. It does not generate a catch or fishing-zone prediction, and it does not ask the user to enter ocean measurements.
 
-### Primary Route: Route B — Western Indian Ocean Skipjack Tuna ML Model
-- **Study Domain**: Western Indian Ocean (WIO), bounding box [38.75°E–79.75°E, -14.75°S–14.75°N].
-- **Prediction Target**: Skipjack tuna (*Katsuwonus pelamis*) catch biomass (in metric tons per monthly $0.5^\circ$ cell), as recorded by the Indian Ocean Tuna Commission (IOTC).
-- **Environmental Predictors**: 12 physical and biogeochemical ocean parameters from Copernicus Marine Service reanalysis (SST, Salinity, Chlorophyll-a, Mixed Layer Depth, Dissolved Oxygen, Currents, SSH, etc.).
-- **Model Task**: Supervised Regression (`RandomForestRegressor` vs. `DummyRegressor` baseline) predicting estimated catch biomass / suitability index.
-- **Evaluation Protocol**: Chronological holdout split (Training: 2005–2015; Frozen Test Set: 2016–2019) to prevent temporal data leakage and verify generalization.
+## Current data route
 
-### Operational Overlay: Route A — INCOIS Coastal Advisory Visualizer
-- **Study Domain**: Coastal Karnataka, India [73.48°E–74.52°E, 13.18°N–14.72°N].
-- **Purpose**: Real-world demonstration of parsing operational Potential Fishing Zone (PFZ) advisories issued by INCOIS (Ministry of Earth Sciences, GoI), converting Degree-Minute-Second (DMS) coordinates to decimal degrees, and rendering them on Leaflet with coastal station bearings and depth profiles.
-- **Scientific Limitation**: The INCOIS advisory is explicitly presented as an **operational reference layer**, **not** as the output of the machine learning model.
+### INCOIS PFZ advisory data
 
----
+- Primary source: official INCOIS PFZ text and spreadsheet exports.
+- Current local snapshot: 9 Nov 2026, for 14 sectors and 522 advisory points, with source validity through 10 Nov 2026.
+- Coordinates are parsed from source DMS values and served as decimal-degree GeoJSON points.
+- The map displays the advisory locations as official INCOIS data, clearly distinguished from any future OCEANIX model layer.
+- The app reports a dated snapshot. It does not imply continuous live refresh.
 
-## 2. Terminology & Truth in Reporting
+### AIML target gate
 
-To adhere to the Blueprint's ethical guidelines (Section 5 & 18):
+The current INCOIS snapshot contains one advisory time, only advisory points, and no matched environmental input matrix. It is not a supervised-learning dataset. An INCOIS model requires a historical advisory archive plus matched environmental data and a defensible comparison-sample design. Any model trained on advisory history would estimate historical advisory patterns, not fish absence or guaranteed catch.
 
-| Allowed Plain-Language Terminology | Prohibited Claims (Scientific Misrepresentation) |
-|---|---|
-| "Historical catch biomass estimate" | "Guaranteed catch location" |
-| "Marine habitat suitability proxy" | "Real-time live fish count" |
-| "Decision-support prototype" | "Operational navigation system" |
-| "Western Indian Ocean Skipjack tuna model" | "Model validated for Karnataka coastal species" |
-| "Historical INCOIS advisory points" | "Live INCOIS satellite telemetry" |
+INCOIS’s holdings page indicates ongoing PFZ and satellite ocean products. However, the current-data inspection found no usable current SST/chlorophyll table in the active ERDDAP entries. Accessible ERDDAP products inspected had earlier end dates. Source access and matching feasibility remain an explicit go/no-go task.
 
----
+### WIO reference route
 
-## 3. Assumptions & Non-Goals
+The existing NOAA/NCEI 0306675 dataset (2005–2019 Western Indian Ocean skipjack catch/environment) remains in the repository with its raw files, prepared table, and historical model documentation. It is not shown as a Karnataka predictor and is not used by the data playground. Its use as a fallback would require a deliberate rescope because its geography and target differ from the INCOIS coastal use case.
 
-### Assumptions Verified
-- Environmental variables (SST, Chlorophyll-a, MLD, etc.) correlate with pelagic fish aggregation but do not directly measure fish presence or fleet economics.
-- The prototype operates on locally bundled, frozen historical datasets to ensure 100% scientific reproducibility.
+## Prototype functionality
 
-### Explicit Non-Goals (Out of Scope)
-- No live unverified web scraping or fragile live API scraping in core inference paths.
-- No heavy deep neural networks or multi-agent LLM systems where simple tree ensembles provide clear tabular interpretability.
-- No user accounts, billing, tracking, or mobile app stores.
-- No claims of navigational safety, sea state hazard assessment, or maritime routing.
+- Show a clear source date, source validity, point count, and sector count.
+- Filter the same official advisory records in both table and map.
+- Search by landing centre and zoom the selected advisory point.
+- Use a keyless OpenStreetMap base layer with required attribution.
+- Link to the official INCOIS PFZ service and official WebGIS.
+- Show honest errors when local data or map tiles cannot load.
+- Keep the historical WebGIS line snapshot out of the current point overlay because its embedded date differs by one day.
 
+## Later main UI
+
+After the data playground is verified, build the broader mobile-first UI inspired by the user’s screenshot: onboarding, home/dashboard, find-zone flow, results, map, ocean conditions, insights, history, About, and Settings. Each element must use real data or be clearly described as a local UI state. Prediction cards and probability/confidence indicators remain out of scope until a valid model and calibration exist.
+
+The first target is a mobile-friendly web app. APK packaging can be evaluated after the web flow and API are stable.
+
+## Responsible-use boundaries
+
+- Official INCOIS advisory points are not OCEANIX predictions.
+- An unlisted advisory point does not mean fish are absent.
+- No screen guarantees catch, evaluates vessel safety, or gives navigation instructions.
+- Show source timestamp and forecast validity near the map and data.
+- If the snapshot expires or cannot be refreshed, label it historical/expired rather than current.

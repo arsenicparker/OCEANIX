@@ -1,171 +1,98 @@
 # OCEANIX Implementation Plan
 
-*Based strictly on the Project Blueprint (Version 1.0, 13 October 2026). No features have been added or removed.*
+*Revised 10 November 2026 to reflect the mobile-first UI, point-specific INCOIS conditions, and local phone access.*
 
----
+## Project direction
 
-## 1. Overview
-This plan translates the blueprint into concrete, time‑boxed work items. It follows the **14‑working‑day schedule** and the **repository structure** described in Section 15 of the blueprint. All deliverables are listed with clear exit criteria.
+OCEANIX is a mobile-first responsive web app. The current build expands the data playground toward the reference UI: dashboard, region search, advisory results, interactive map, snapshot insights, history, About, and Settings. It shows official INCOIS advisories and a point-concentration heat layer. The heat colors represent where advisory points cluster, not catch probability or an OCEANIX prediction.
 
----
+The primary user-facing data source is the official INCOIS Potential Fishing Zone (PFZ) advisory. A dated snapshot for all 14 INCOIS sectors has been downloaded and audited. Ocean Conditions now queries the operational INCOIS Ocean State Forecast products at a selected advisory coordinate and displays the daily ABIS chlorophyll-a map. OSF fields are model forecasts; the ABIS image is satellite data. Later, a supervised AIML model may be added only after a historical PFZ archive and matched environmental data pass an audit. The existing WIO files and model notes are retained as a reference/fallback, not as the current app’s advisory source.
 
-## 2. Repository Layout (Section 15)
-```
-OCEANIX/
-├─ README.md
-├─ requirements.txt
-├─ .gitignore
-├─ data/
-│   ├─ raw/            # source files (immutable)
-│   ├─ interim/        # cleaned/joined temporary data
-│   └─ processed/      # final model‑ready table
-├─ docs/
-│   ├─ dataset_audit.md
-│   ├─ data_sources.md
-│   ├─ project_scope.md
-│   ├─ ml_plan.md
-│   ├─ ml_results.md
-│   └─ limitations.md
-├─ notebooks/          # optional exploratory notebooks
-├─ src/oceanix/
-│   ├─ data/           # download / validation / alignment
-│   ├─ features/       # preprocessing pipeline
-│   ├─ modeling/       # training / evaluation / export
-│   └─ api/            # FastAPI app & Pydantic schemas
-├─ frontend/           # responsive HTML/CSS/JS + Leaflet map
-├─ models/             # saved pipeline + metadata (git‑ignored)
-└─ tests/
-    ├─ test_data_checks.py
-    ├─ test_model_smoke.py
-    └─ test_api.py
-```
+## Current dataset status
 
----
-
-## 3. Detailed Work Breakdown (aligned to Blueprint Sections)
-
-### Day 1‑2 – Data Audit (Milestone M1)
-1. **Create audit notebook/script** (`src/oceanix/data/audit.py`).
-2. **Download candidate datasets** (INCOIS PFZ & environmental products *or* NOAA/NCEI 0306675) into `data/raw/`.
-3. **Run the checklist** (Section 7 tables) and produce `docs/dataset_audit.md` covering:
-   - Provenance, time coverage, geography, schema, target validity, feature‑target match, sample quality, licensing, repeatability.
-4. **Decision** – Record GO / CONDITIONAL‑GO / NO‑GO in the audit file.
-5. **Commit** audit script and markdown.
-
-### Day 3‑4 – Dataset Preparation (Milestone M2)
-1. Implement deterministic preprocessing (`src/oceanix/data/prepare.py`) that:
-   - Reads raw files (CSV/Excel/NetCDF) without modifying originals.
-   - Converts DMS to decimal degrees, validates ranges.
-   - Parses dates with explicit formats, preserves time‑zone.
-   - Joins environmental variables to target records using documented spatial/temporal tolerance.
-   - Generates `data/interim/cleaned_<source>.csv` and logs row‑count changes.
-2. Produce `docs/data_sources.md` (sources, URLs, checksums) and `docs/project_scope.md` (chosen route – A or B).
-3. Verify that the resulting table meets all audit checklist items; update audit if needed.
-4. Add unit tests (`tests/test_data_checks.py`) for schema, missingness, coordinate validity.
-
-### Day 5‑6 – Machine‑Learning (Milestone M3)
-1. Define the **target** based on the audit outcome (Section 8).
-2. Create a scikit‑learn `Pipeline` (`src/oceanix/modeling/pipeline.py`) that includes:
-   - `ColumnTransformer` for numeric imputation / optional missing‑indicator flags.
-   - Baseline estimator (`DummyClassifier`/`DummyRegressor`).
-   - Primary model (`RandomForestClassifier` or `RandomForestRegressor`).
-3. Implement split logic respecting temporal/spatial groups (Section 10). Use a frozen test set.
-4. Train baseline → train primary model → compute metrics (Section 11 tables).
-5. Save the fitted pipeline and metadata to `models/pipeline.joblib` and a corresponding `ml_results.md` report.
-6. Add `tests/test_model_smoke.py` to load the artifact and run a single inference.
-
-### Day 7 – Evaluation & Reporting (Milestone M4)
-1. Generate metric tables (confusion matrix, precision/recall/F1 *or* MAE/RMSE/R²) and plots.
-2. Write `docs/ml_results.md` containing:
-   - Dataset split description.
-   - Baseline vs model metrics.
-   - Feature‑importance (permutation or native) visualisation.
-   - Explicit limitation statements (Section 11).
-3. Review against the **minimum reported metrics** checklist; iterate if needed.
-
-### Day 8‑9 – API Development (Milestone M5)
-1. Build FastAPI app (`src/oceanix/api/main.py`) with endpoints:
-   - `GET /health`
-   - `GET /model-info`
-   - `POST /predict`
-2. Define request/response schemas using Pydantic (Section 13). Enforce validation, 4xx errors, and CORS limited to `http://localhost:<frontend‑port>`.
-3. Load the saved pipeline at startup (singleton). No retraining per request.
-4. Write `tests/test_api.py` covering success and error cases.
-5. Verify with `uvicorn src.oceanix.api.main:app --reload`.
-
-### Day 10‑11 – Front‑End & Map (Milestone M6)
-1. Create a responsive HTML/CSS/JS UI under `frontend/`:
-   - Home/overview page.
-   - Input form (date picker, lat/lon fields) that matches the API schema.
-   - Result display with prediction value, target description, model version, and disclaimer.
-   - Leaflet map that:
-     * Shows historical advisory points (if available) with distinct marker.
-     * Shows model prediction marker (different colour/legend).
-     * Includes OSM attribution.
-2. Style with a premium, glassmorphism‑inspired palette (dark mode, modern typography – e.g., Google Font *Inter*). Add subtle hover animations.
-3. Connect UI to API via `fetch` calls; display loading spinner and clear error messages.
-4. Add a “About / Limitations” modal containing the disclaimer from Section 11.
-5. Manually test on desktop and mobile viewport sizes.
-
-### Day 12‑13 – Integration, QA & Documentation (Milestone M7)
-1. Run the full **end‑to‑end** flow:
-   - Data audit → preprocessing → model training → API → UI → map.
-2. Execute the entire test suite (`pytest -q`). All must pass.
-3. Update `README.md` with:
-   - Project description.
-   - Setup instructions (virtual env, `pip install -r requirements.txt`).
-   - Step‑by‑step run guide (data audit → `uvicorn` → open UI).
-   - Links to generated docs (`docs/`).
-4. Ensure reproducibility: record Python version, package versions (pin in `requirements.txt`), and random seeds.
-5. Commit all code, docs, and non‑large data artefacts.
-
-### Day 14 – Final Deliverables & Demo (Milestone M8)
-1. Compile the final **project report** (single PDF or Markdown) containing:
-   - Executive summary.
-   - Dataset audit & source list.
-   - ML methodology & results.
-   - API specification.
-   - UI screenshots (including map legend).
-   - Acceptance checklist evidence.
-2. Prepare a **demo script** (≈4 min) following the flow in Section 20.
-3. Verify that a clean clone of the repo can be set up from the README and reproduced end‑to‑end.
-4. Archive the demo video/screenshots in the `docs/` folder.
-
----
-
-## 4. Acceptance Checklist (Section 19) – Mapping to Deliverables
-| Requirement | Deliverable | Verification |
+| Dataset | Local status | Verified use |
 |---|---|---|
-| Source & target verified | `docs/dataset_audit.md` + `docs/project_scope.md` | Audit GO decision documented |
-| No fabricated data/results | Raw files unchanged, audit logs, reproducible pipeline | Git diff shows only code changes |
-| Model evaluated on unseen data | `docs/ml_results.md` with held‑out metrics | Test set defined before training |
-| Beats / compares to baseline | Metric table in `ml_results.md` | Baseline vs model numbers shown |
-| API supports correct schema | `src/oceanix/api/main.py` + `tests/test_api.py` | All tests pass |
-| UI renders correct semantics | `frontend/` with map legend, disclaimer | Manual UI test + screenshots |
-| Limitations visible | Disclaimer in UI and `docs/limitations.md` | Present in both places |
-| Reproducible from README | `README.md` + CI‑style test run | Clean clone reproduces end‑to‑end |
+| INCOIS PFZ sector exports | 14 dated Excel exports from 9 Nov 2026; DMS coordinates; 522 points total; checksums in `data/raw/INCOIS_PFZ_sector_manifest_2026-11-09.json` | Data playground and map |
+| INCOIS PFZ WebGIS lines | 102 MultiLineString features; source fields identify 8 Nov 2026 (Julian day 312) | Stored for investigation; excluded from the 9 Nov point map until dates are reconciled |
+| Earlier Karnataka PFZ export | One archived forecast from 4–5 Oct 2026; 24 points | Historical parsing fixture only |
+| NOAA/NCEI 0306675 WIO catch/environment | Existing files and processed table retained; checksums, row counts, joins, and split rechecked | Legacy WIO reference/fallback; not a Karnataka model |
+| INCOIS Ocean State Forecast (OSF) point time series | Operational WMS `GetTimeseries` products discovered from the official OSF page: SST, surface current, MLD, D20, wind, wave height, and wave period | Fetched for a selected advisory coordinate; shown with timestamp and identified as model forecast; 10-minute API cache |
+| INCOIS ABIS daily satellite products | Regional 4 km chlorophyll-a and SST maps, plus a daily NetCDF download; page inspected 10 Nov 2026 | Chlorophyll map and publication date shown; no numeric selected-pixel value until a supported and verified point query is available |
+| Older INCOIS ERDDAP chlorophyll/SST archives | Catalog entries inspected on 9 Nov 2026 end in 2020 or earlier | Not used as current environmental readings |
 
----
+The point snapshot is valid through 10 Nov 2026 according to the source export. It is a saved snapshot, not a continuously refreshed feed. Refresh it from the official source before presenting it as current on a later date.
 
-## 5. Risk Mitigation (referencing Section 18)
-| Risk | Mitigation in Plan |
-|---|---|
-| Data source inaccessible | Time‑box audit; prepare fallback NOAA/NCEI route; document decision before ML.
-| No defensible target | Audit explicitly requires target validity; if absent, shift to a transparent environmental index (Plan C).
-| Data leakage | Split created **before** any preprocessing; pipeline trained only on training split.
-| Weak model performance | Baseline comparison required; if model does not improve, report honestly and consider index.
-| Map authority perception | Distinct markers, clear legends, pervasive disclaimer, UI‑level warning.
-| Dependency issues | Minimal pinned `requirements.txt`; test on fresh environment.
+## Milestone 0 — Repository and data audit (completed for this revision)
 
----
+- [x] Inspect repository, docs, API, frontend, raw datasets, processed tables, and existing tests.
+- [x] Recompute the three existing raw-file hashes; all match the prior source registry.
+- [x] Recheck the NOAA/NCEI row counts, target coverage, time range, and processed chronological split.
+- [x] Retrieve the current official INCOIS sector exports for all 14 sectors using the site’s spreadsheet export.
+- [x] Retain DMS coordinates and write a per-file SHA-256 manifest.
+- [x] Prepare a combined 522-point CSV and GeoJSON; validate coordinate ranges and all 14 sector labels.
+- [x] Retrieve the official PFZ WebGIS line export and record its separate embedded date.
+- [x] Record the accessible INCOIS environmental products and the mismatch between the holdings summary and active ERDDAP dataset dates.
 
-## 6. Next Steps
-- **Create the repository** with the layout above.
-- **Add `README.md`** placeholder and commit.
-- **Proceed to Day 1** tasks (data download & audit).
+## Milestone 1 — INCOIS data foundation (completed)
 
-*All subsequent work must reference the sections and tables of the original blueprint; no additional features shall be introduced without explicit blueprint amendment.*
+### Scope
 
----
+- Show a compact, responsive OCEANIX page with an INCOIS source date, validity note, dataset counts, and a map.
+- Filter advisory points by sector and landing centre; keep the map, table, and count in sync.
+- Use OpenStreetMap tiles with attribution so local map display does not require a CARTO key.
+- Serve prepared local GeoJSON and summary metadata through FastAPI.
+- Make it clear that the visible points are official INCOIS advisories, not OCEANIX model predictions.
+- Preserve source dates, provenance, and the distinction between official advisories and future model output.
 
-*Implementation plan saved to `IMPLEMENTATION_PLAN.md` in the project root.*
+### Acceptance checks
+
+- API summary reports the snapshot date, point count, and sector count from the prepared data.
+- Map markers and table rows come from the same API response and respond to the same filters.
+- Selecting a table row locates the point on the map.
+- The UI names the snapshot and its validity, and links to the official INCOIS advisory and WebGIS.
+- Map tiles use a keyless source with visible attribution; tile failures show a readable message.
+- No user-entered ocean measurements or uncalibrated confidence percentage are presented.
+- The foundation checks passed during the earlier data-playground revision. The expanded UI still needs a phone and desktop visual review.
+
+## Milestone 2 — Historical INCOIS dataset feasibility (blocked on source availability, not on coding)
+
+1. Locate a machine-readable archive of historical PFZ advisories and document retrieval terms, dates, sectors, and formats.
+2. Locate historical SST/chlorophyll (and other justified variables) for the same areas and periods.
+3. Match advisory labels and ocean measurements using a documented spatial and temporal method.
+4. Quantify missingness, coverage, class construction, and matching error.
+5. Define the target as historical advisory inclusion/pattern only unless independent catch measurements support a stronger target. “Not listed in an advisory” must not be called “no fish.”
+6. Record a formal GO / CONDITIONAL GO / NO-GO decision before training.
+
+If these sources cannot be obtained in a defensible form, do not create a supervised model from a single daily snapshot. Reassess whether an explicitly rule-based environmental index or the separately scoped WIO fallback fits the project.
+
+## Milestone 3 — AIML experiment (after Milestone 2 GO)
+
+- Build the model only from verified historical features and labels.
+- Compare a simple baseline with one justified estimator.
+- Split by time and, where the data supports it, geographic group; report sample counts and leakage checks.
+- Report target-specific metrics, weak areas, provenance, and limitations. Do not surface the existing WIO metrics as INCOIS/Karnataka performance.
+- Serve model results only when the request can be fulfilled from source-backed app data; do not ask users to invent or enter ocean measurements.
+
+## Milestone 4 — Main mobile-first UI (active)
+
+Build the responsive experience inspired by the screenshot: dashboard, find-zone flow, advisory result state, interactive map with selectable point and advisory-concentration layer, ocean conditions, insights, history/saved regions, About, and Settings. Use the phone layout as the primary design target and make the same flows adapt to desktop. Show environmental products only with source, timestamp, and forecast/satellite labels; do not present catch probabilities before model validation. Keep official advisories distinct from future OCEANIX model outputs.
+
+### Current UI behavior and data limits
+
+- Region search uses a selected INCOIS sector, landing-centre text, or optional browser geolocation. Device coordinates are kept in page memory only and are not sent to the API or saved to history.
+- The radius control filters available advisory coordinates around device location; sector or centre searches return matching available advisory points.
+- The map heat layer uses equal-weight INCOIS advisory points. Its legend reads “Fewer points” to “More points” and explicitly says it is not catch probability.
+- Ocean Conditions requires the user to select an official advisory coordinate, then requests OSF forecast time series and shows per-field timestamps. The daily ABIS chlorophyll map is presented separately; the selected-pixel number remains unavailable because the public page exposes a map product rather than a validated point query.
+- On a phone on the same Wi-Fi as the development computer, open the computer’s private IP and app port. The server binds to the local network for this purpose. Browser GPS requires HTTPS; selecting a real INCOIS advisory coordinate works over the local HTTP connection.
+- Insights summarize counts in the single available snapshot. They do not imply temporal trends or fish abundance.
+- History and saved sector names use browser local storage. Exact device coordinates are not persisted.
+- The saved dataset has one date only; the date control therefore exposes the available snapshot date rather than implying historical date search.
+
+The first main UI target remains a mobile-friendly web app. APK packaging can be considered later; it is not part of the data-playground milestone.
+
+## Implementation notes
+
+- Raw source exports are preserved under `data/raw/`; prepared files are written under `data/interim/`.
+- The current source snapshot and data-preparation outputs are dated. A future refresh should create a new dated snapshot and manifest rather than overwrite earlier source evidence.
+- The map requires an internet connection for OpenStreetMap tiles. The app itself makes no CARTO request and requires no map API key.
+- Android starter files were already modified in the working tree before this revision. They were left untouched; native Android work remains deferred.

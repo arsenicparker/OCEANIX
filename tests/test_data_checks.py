@@ -9,11 +9,13 @@ from oceanix.data.audit import (
     dms_to_dd,
     audit_incois_karnataka_pfz,
     audit_noaa_0306675,
+    audit_incois_current_snapshot,
 )
 from oceanix.data.prepare import (
     prepare_incois_karnataka_pfz,
     prepare_noaa_wio_dataset,
     ENV_FEATURE_COLUMNS,
+    prepare_incois_current_snapshot,
 )
 
 RAW_DIR = Path("data/raw")
@@ -133,3 +135,25 @@ def test_prepare_noaa_wio(tmp_path):
     assert train_years.isdisjoint(test_years)
     assert max(train_years) == 2015
     assert min(test_years) == 2016
+
+
+def test_current_incois_snapshot_has_all_sectors_and_valid_coordinates(tmp_path):
+    manifest = RAW_DIR / "INCOIS_PFZ_sector_manifest_2026-11-09.json"
+    clean_df = prepare_incois_current_snapshot(RAW_DIR, tmp_path, manifest)
+    assert len(clean_df) == 522
+    assert clean_df["sector_code"].nunique() == 14
+    assert clean_df["advisory_id"].is_unique
+    assert clean_df["latitude"].between(-90, 90).all()
+    assert clean_df["longitude"].between(-180, 180).all()
+    assert set(clean_df["forecast_valid_to"]) == {"2026-11-10"}
+    assert (tmp_path / "incois_current_pfz.geojson").exists()
+
+
+def test_current_incois_snapshot_files_match_manifest():
+    audit = audit_incois_current_snapshot(RAW_DIR, INTERIM_DIR)
+    assert audit["status"] == "PASS"
+    assert audit["sector_file_count"] == 14
+    assert audit["prepared_point_count"] == 522
+    assert audit["checksum_mismatches"] == []
+    assert audit["missing_files"] == []
+    assert audit["supervised_ml_ready"] is False

@@ -8,24 +8,27 @@ from __future__ import annotations
 
 import json
 import logging
+import csv
+import io
+import re
+import threading
+from datetime import datetime, timezone
+from functools import lru_cache
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Dict
+from urllib.parse import urljoin
 
-import joblib
-import pandas as pd
+import requests
 from fastapi.staticfiles import StaticFiles
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
 from oceanix.api.schemas import (
     HealthResponse,
-    ModelInfoResponse,
-    PredictionRequest,
-    PredictionResponse,
 )
-from oceanix.features.preprocessing import ALL_PREDICTOR_FEATURES
 
 logging.basicConfig(
     level=logging.INFO,
@@ -33,40 +36,30 @@ logging.basicConfig(
     datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger("oceanix.api")
+INCOIS_OSF_PAGE = "https://iioe-2.incois.gov.in/oceanservices/osfforecast.jsp"
+INCOIS_ABIS_PAGE = "https://incois.gov.in/site/services/hab_products.jsp"
+_environment_cache: dict[tuple[float, float], tuple[float, dict[str, Any]]] = {}
+_environment_cache_lock = threading.Lock()
+_HTTP = requests.Session()
+_HTTP.headers.update({"User-Agent": "OCEANIX educational prototype/1.0"})
 
 ROOT_DIR = Path(__file__).resolve().parent.parent.parent.parent
-MODEL_PATH = ROOT_DIR / "models" / "pipeline.joblib"
-METADATA_PATH = ROOT_DIR / "models" / "model_metadata.json"
 ADVISORY_GEOJSON_PATH = ROOT_DIR / "data" / "interim" / "cleaned_incois_karnataka.geojson"
+CURRENT_PFZ_GEOJSON_PATH = ROOT_DIR / "data" / "interim" / "incois_current_pfz.geojson"
+CURRENT_PFZ_MANIFEST_PATH = ROOT_DIR / "data" / "raw" / "INCOIS_PFZ_sector_manifest_2026-11-09.json"
+CURRENT_PFZ_LINES_PATH = ROOT_DIR / "data" / "raw" / "INCOIS_PFZ_Lines_India_2026-11-09.geojson"
 
 # Global singleton model & metadata container
 app_state: Dict[str, Any] = {
-    "model": None,
-    "metadata": None,
     "advisories_geojson": None,
+    "current_pfz_geojson": None,
+    "current_pfz_manifest": None,
+    "current_pfz_lines": None,
 }
 
 
 def load_artifacts() -> None:
-    """Load model pipeline, metadata, and advisory GeoJSON into global state."""
-    # 1. Load trained scikit-learn pipeline
-    if app_state.get("model") is None and MODEL_PATH.exists():
-        try:
-            app_state["model"] = joblib.load(MODEL_PATH)
-            logger.info("Successfully loaded model pipeline artifact from %s", MODEL_PATH)
-        except Exception as e:
-            logger.error("Failed to load model pipeline artifact: %s", e)
-
-    # 2. Load model metadata
-    if app_state.get("metadata") is None and METADATA_PATH.exists():
-        try:
-            with open(METADATA_PATH, "r", encoding="utf-8") as f:
-                app_state["metadata"] = json.load(f)
-            logger.info("Loaded model metadata from %s", METADATA_PATH)
-        except Exception as e:
-            logger.error("Failed to load model metadata: %s", e)
-
-    # 3. Load operational advisory GeoJSON
+    """Load saved INCOIS data snapshots into global state."""
     if app_state.get("advisories_geojson") is None and ADVISORY_GEOJSON_PATH.exists():
         try:
             with open(ADVISORY_GEOJSON_PATH, "r", encoding="utf-8") as f:
@@ -74,6 +67,19 @@ def load_artifacts() -> None:
             logger.info("Loaded INCOIS Karnataka advisory GeoJSON from %s", ADVISORY_GEOJSON_PATH)
         except Exception as e:
             logger.error("Failed to load advisory GeoJSON: %s", e)
+
+    # Load the dated all-sector INCOIS snapshot used by the data playground.
+    for key, path in (
+        ("current_pfz_geojson", CURRENT_PFZ_GEOJSON_PATH),
+        ("current_pfz_manifest", CURRENT_PFZ_MANIFEST_PATH),
+        ("current_pfz_lines", CURRENT_PFZ_LINES_PATH),
+    ):
+        if app_state.get(key) is None and path.exists():
+            try:
+                app_state[key] = json.loads(path.read_text(encoding="utf-8-sig"))
+                logger.info("Loaded %s from %s", key, path)
+            except Exception as e:
+                logger.error("Failed to load %s: %s", key, e)
 
 
 @asynccontextmanager
@@ -89,12 +95,12 @@ async def lifespan(app: FastAPI):
 load_artifacts()
 
 app = FastAPI(
-    title="OCEANIX Marine Intelligence API",
+    title="OCEANIX INCOIS Data Playground API",
     description=(
-        "Decision-support API for marine environmental intelligence and "
-        "fishing-zone suitability prediction based on historical oceanographic time-series."
+        "Serves a dated, source-attributed INCOIS Potential Fishing Zone advisory snapshot. "
+        "This stage does not provide OCEANIX model predictions."
     ),
-    version="1.0.0",
+    version="0.2.0",
     lifespan=lifespan,
 )
 
@@ -111,7 +117,6 @@ app.add_middleware(
         "http://127.0.0.1:8000",
         "http://127.0.0.1:8080",
         "http://10.0.2.2:8000",
-        "*",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -121,32 +126,15 @@ app.add_middleware(
 
 @app.get("/health", response_model=HealthResponse, tags=["System"])
 def health_check() -> HealthResponse:
-    """Confirm API is operational and report loaded model status."""
+    """Confirm the API and prepared INCOIS snapshot are available."""
     load_artifacts()
-    model_loaded = app_state["model"] is not None
-    version = (
-        app_state["metadata"].get("model_version", "1.0.0")
-        if app_state["metadata"]
-        else "unknown"
-    )
+    geojson = app_state.get("current_pfz_geojson")
+    manifest = app_state.get("current_pfz_manifest") or {}
     return HealthResponse(
         status="ok",
-        model_loaded=model_loaded,
-        model_version=version,
+        data_loaded=geojson is not None,
+        snapshot_date=manifest.get("retrieved_local_date"),
     )
-
-
-@app.get("/model-info", response_model=ModelInfoResponse, tags=["System"])
-def get_model_info() -> ModelInfoResponse:
-    """Explain supported target, region, feature schema, test metrics, and limitations."""
-    load_artifacts()
-    meta = app_state.get("metadata")
-    if not meta:
-        raise HTTPException(
-            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Model metadata is not loaded.",
-        )
-    return ModelInfoResponse(**meta)
 
 
 @app.get("/advisories/karnataka", tags=["Advisories"])
@@ -162,60 +150,198 @@ def get_karnataka_advisories():
     return JSONResponse(content=geojson)
 
 
-@app.post("/predict", response_model=PredictionResponse, tags=["Inference"])
-def predict_suitability(request: PredictionRequest) -> PredictionResponse:
-    """Predict skipjack tuna suitability and estimated catch biomass for given coordinates and features."""
+@app.get("/api/pfz/current", tags=["INCOIS data"])
+def get_current_pfz_snapshot():
+    """Return the saved, dated official INCOIS PFZ point snapshot."""
     load_artifacts()
-    pipeline = app_state.get("model")
-    if pipeline is None:
+    geojson = app_state.get("current_pfz_geojson")
+    if not geojson:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail="Model pipeline is not loaded on the server.",
+            detail="The dated INCOIS PFZ snapshot has not been prepared.",
         )
+    return JSONResponse(content=geojson)
 
-    # Convert request to DataFrame aligned to training feature names
-    input_dict = request.model_dump()
-    row_data = {feat: input_dict.get(feat, None) for feat in ALL_PREDICTOR_FEATURES}
-    df_input = pd.DataFrame([row_data])
 
-    try:
-        raw_prediction = pipeline.predict(df_input)
-        pred_val = float(max(0.0, raw_prediction[0]))
-    except Exception as e:
-        logger.error("Inference execution failed: %s", e)
+@app.get("/api/pfz/current/summary", tags=["INCOIS data"])
+def get_current_pfz_summary():
+    """Return source dates, sector coverage, and record counts for the snapshot."""
+    load_artifacts()
+    geojson = app_state.get("current_pfz_geojson")
+    manifest = app_state.get("current_pfz_manifest")
+    if not geojson or not manifest:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Inference failed: {str(e)}",
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="The INCOIS snapshot or its provenance manifest is unavailable.",
         )
+    features = geojson.get("features", [])
+    sectors = sorted({f.get("properties", {}).get("sector_name") for f in features})
+    return {
+        "snapshot_date": manifest.get("retrieved_local_date"),
+        "source_updated_at": (manifest.get("sectors") or [{}])[0].get("updated"),
+        "forecast_validity": (manifest.get("sectors") or [{}])[0].get("validity"),
+        "point_count": len(features),
+        "sector_count": len(sectors),
+        "sectors": sectors,
+        "source": manifest.get("source"),
+        "coordinate_format": manifest.get("coordinate_format"),
+        "is_live_connection": False,
+        "note": "Saved official INCOIS snapshot; refresh by collecting a new source export.",
+    }
 
-    # Determine suitability tier based on empirical quartiles
-    # (p25 = 12.0 MT, median = 27.0 MT, p75 = 58.4 MT)
-    if pred_val >= 45.0:
-        tier = "High Suitability"
-    elif pred_val >= 20.0:
-        tier = "Moderate Suitability"
-    else:
-        tier = "Low Suitability"
 
-    meta = app_state.get("metadata", {})
-    return PredictionResponse(
-        status="ok",
-        model_name=meta.get("model_name", "OCEANIX Skipjack Tuna Suitability Regressor"),
-        model_version=meta.get("model_version", "1.0.0"),
-        target="skipjack_catch_biomass",
-        predicted_catch_biomass_mt=round(pred_val, 2),
-        suitability_tier=tier,
-        study_region="Western Indian Ocean (WIO) [38.75°E - 79.75°E, -14.75°S - 14.75°N]",
-        input_coordinates={
-            "longitude": request.longitude,
-            "latitude": request.latitude,
-            "month": request.month,
-        },
-        disclaimer=(
-            "Decision-support estimate based on historical 2005-2019 environmental time-series. "
-            "Does not constitute official marine advice, sea navigation guidance, or a guarantee of fish catch."
-        ),
-    )
+@app.get("/api/pfz/lines", tags=["INCOIS data"])
+def get_current_pfz_lines():
+    """Return the separately dated WFS line layer for inspection."""
+    load_artifacts()
+    data = app_state.get("current_pfz_lines")
+    if not data:
+        raise HTTPException(status_code=404, detail="INCOIS WFS line snapshot not found.")
+    return JSONResponse(content=data)
+
+
+def _current_product_files() -> dict[str, str]:
+    """Read current file names from INCOIS's own OSF page (no API key)."""
+    response = _HTTP.get(INCOIS_OSF_PAGE, timeout=20)
+    response.raise_for_status()
+    html = response.text
+    names = {}
+    for key, variable in {
+        "sst": "sstnio",
+        "currents": "currentsFile2",
+        "mld": "mldnio",
+        "waves": "rsmc_combined_ww3",
+    }.items():
+        match = re.search(rf'\bvar\s+{variable}\s*=\s*["\']([^"\']+)', html)
+        if not match:
+            raise ValueError(f"INCOIS OSF did not publish a current {key} product filename.")
+        names[key] = match.group(1)
+    return names
+
+
+def _read_timeseries(product_url: str, layer: str, lat: float, lon: float) -> dict[str, Any] | None:
+    params = {
+        "SERVICE": "WMS", "REQUEST": "GetTimeseries", "LAYERS": layer,
+        "QUERY_LAYERS": layer, "BBOX": f"{lon},{lat},{lon},{lat}",
+        "SRS": "CRS:84", "FEATURE_COUNT": 5, "HEIGHT": 1, "WIDTH": 1,
+        "X": 0, "Y": 0, "ELEVATION": 0, "VERSION": "1.1.1",
+        "INFO_FORMAT": "text/csv",
+    }
+    response = _HTTP.get(product_url, params=params, timeout=20)
+    response.raise_for_status()
+    rows = list(csv.reader(io.StringIO(response.text)))
+    header = next((i for i, row in enumerate(rows) if row and "time" in row[0].lower()), None)
+    if header is None:
+        return None
+    parsed = []
+    for row in rows[header + 1:]:
+        if len(row) < 2:
+            continue
+        try:
+            stamp = datetime.fromisoformat(row[0].strip().replace("Z", "+00:00"))
+            numeric = next(float(part) for part in reversed(row[1:]) if part.strip())
+            if numeric == numeric and abs(numeric) < 1e20:
+                parsed.append((stamp, numeric))
+        except (ValueError, StopIteration):
+            continue
+    now = datetime.now(timezone.utc)
+    available = [item for item in parsed if item[0].astimezone(timezone.utc) <= now]
+    selected = max(available or parsed, key=lambda item: item[0], default=None)
+    if selected is None:
+        return None
+    return {"value": selected[1], "time": selected[0].isoformat()}
+
+
+def _environment_readings(lat: float, lon: float) -> dict[str, Any]:
+    thredds = "https://iioe-2.incois.gov.in/thredds/wms/osf"
+    readings: dict[str, Any] = {}
+    errors: list[str] = []
+    try:
+        products = _current_product_files()
+        jobs = {
+            "sst": (f"{thredds}/winds/{products['sst']}", "SST", "°C", "INCOIS OSF model forecast"),
+            "current": (f"{thredds}/currents/{products['currents']}", "CURRENT", "m/s", "INCOIS OSF model forecast"),
+            "mld": (f"{thredds}/winds/{products['mld']}", "MLD", "m", "INCOIS OSF model forecast"),
+            "d20": (f"{thredds}/winds/{products['mld']}", "D20", "m", "INCOIS OSF model forecast"),
+            "wind": (f"{thredds}/ww3/{products['waves']}", "UWND:VWND-mag", "m/s", "INCOIS OSF forecast"),
+            "wave_height": (f"{thredds}/ww3/{products['waves']}", "HS", "m", "INCOIS OSF forecast"),
+            "wave_period": (f"{thredds}/ww3/{products['waves']}", "T02", "s", "INCOIS OSF forecast"),
+        }
+        with ThreadPoolExecutor(max_workers=7) as pool:
+            futures = {
+                key: pool.submit(_read_timeseries, url, layer, lat, lon)
+                for key, (url, layer, _, _) in jobs.items()
+            }
+            for key, future in futures.items():
+                _, _, unit, source = jobs[key]
+                try:
+                    reading = future.result()
+                    if reading is None:
+                        errors.append(f"{key}: no value at this location")
+                        continue
+                    reading["unit"] = unit
+                    reading["source"] = source
+                    readings[key] = reading
+                except Exception as exc:
+                    logger.warning("INCOIS %s query failed: %s", key, exc)
+                    errors.append(f"{key}: source temporarily unavailable")
+    except Exception as exc:
+        logger.warning("INCOIS OSF products could not be discovered: %s", exc)
+        errors.append("INCOIS OSF forecast service temporarily unavailable")
+
+    # The public ABIS page publishes the daily satellite products as mapped
+    # imagery and a NetCDF download. It currently does not expose a supported
+    # point-query API; do not turn a color on the image into a fake number.
+    abis: dict[str, Any] = {"value": None, "unit": "mg/m³", "source": "INCOIS ABIS daily satellite product"}
+    try:
+        page = _HTTP.get(INCOIS_ABIS_PAGE, timeout=20)
+        page.raise_for_status()
+        match = re.search(r"(?:href|src)=['\"]([^'\"]*A-[^'\"]*-4KM-IndiaSriLanka-CHL\.png)['\"]", page.text)
+        if match:
+            abis["image_url"] = urljoin(INCOIS_ABIS_PAGE, match.group(1))
+            abis["source_url"] = INCOIS_ABIS_PAGE
+            date_match = re.search(r"A-([A-Za-z]+\d{4})-d(\d{2})-4KM-IndiaSriLanka-CHL\.png", match.group(1))
+            if date_match:
+                try:
+                    month = datetime.strptime(date_match.group(1), "%b%Y").strftime("%b %Y")
+                    abis["date"] = f"{int(date_match.group(2))} {month}"
+                except ValueError:
+                    abis["date"] = match.group(1)
+            abis["colorbar_url"] = urljoin(INCOIS_ABIS_PAGE, "/datasets/ecosystem/HAB/ColorBars/CHL_colorbar.png")
+    except Exception as exc:
+        logger.warning("INCOIS ABIS product lookup failed: %s", exc)
+        errors.append("chlorophyll: INCOIS daily map lookup unavailable")
+    return {
+        "location": {"latitude": lat, "longitude": lon},
+        "retrieved_at": datetime.now(timezone.utc).isoformat(),
+        "readings": {**readings, "chlorophyll_a": abis},
+        "errors": errors,
+        "note": "INCOIS OSF values are model forecast fields. Satellite chlorophyll is shown as the official daily map; no numeric point value is reported unless INCOIS exposes a verified point query.",
+    }
+
+
+@app.get("/api/environment/current", tags=["Environmental data"])
+def get_environment_conditions(
+    lat: float = Query(..., ge=-90, le=90),
+    lon: float = Query(..., ge=-180, le=180),
+):
+    """Get current INCOIS point forecasts and latest ABIS chlorophyll product."""
+    key = (round(lat, 4), round(lon, 4))
+    now = datetime.now(timezone.utc).timestamp()
+    with _environment_cache_lock:
+        cached = _environment_cache.get(key)
+        if cached and now - cached[0] < 600:
+            return cached[1]
+    try:
+        result = _environment_readings(lat, lon)
+    except requests.RequestException as exc:
+        logger.warning("INCOIS environment service unavailable: %s", exc)
+        raise HTTPException(status_code=503, detail="INCOIS environmental data service is temporarily unavailable. Try again shortly.") from exc
+    except ValueError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
+    with _environment_cache_lock:
+        _environment_cache[key] = (now, result)
+    return result
 
 
 # Mount static frontend application

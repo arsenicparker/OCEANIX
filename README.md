@@ -1,132 +1,68 @@
-# OCEANIX: AI-Based Marine Intelligence
+# OCEANIX — Marine Intelligence Prototype
 
-**Fishing-Zone Suitability Prediction and Map-Based Decision Support**  
-*A defensible, transparent, and reproducible data-to-application engineering workflow.*
+OCEANIX is an AIML project being built in stages. The current deliverable is a mobile-first responsive web app for exploring official INCOIS Potential Fishing Zone advisories and point-specific ocean conditions. It includes a dashboard, region search, nearby advisory results, interactive map, advisory-concentration heat layer, environmental conditions, snapshot insights, local search history, About, and Settings.
 
----
+**The current app does not make an OCEANIX fishing prediction and does not accept user-provided ocean measurements.** The map heat layer shows advisory-point concentration, not catch probability. The INCOIS data currently in the repository is a snapshot retrieved on 9 November 2026 and reported valid through 10 November 2026. Refresh and audit the source data before describing it as current at a later date.
 
-## 1. Overview
-OCEANIX is an educational decision-support prototype that uses marine environmental observations and fishery data to estimate fishing-zone suitability. The project demonstrates an end-to-end engineering workflow:
-1. **Data Acquisition & Audit**: Inspect provenance, coverage, quality, and label validity before committing to machine learning.
-2. **Deterministic Processing**: Parse coordinates, align environmental variables across space and time, and prevent data leakage.
-3. **Machine Learning Pipeline**: Compare an interpretable primary estimator (`RandomForest`) against an honest baseline (`DummyEstimator`) on held-out temporal/spatial splits.
-4. **Validated API**: Expose predictions and model metadata via FastAPI with strict Pydantic schemas.
-5. **Interactive Interface**: Render estimates and historical advisories on a responsive Leaflet map with explicit attribution and limitations.
+## What is available
 
-> **Responsible Use Disclaimer**: OCEANIX is an educational prototype and decision-support tool. It is **not** official marine advice, a navigation system, or an operational fishing guarantee. A "high suitability" score does not guarantee catch or safety, and "low suitability" does not imply fish absence.
+- 14 INCOIS sector spreadsheet exports in `data/raw/` with a checksum manifest.
+- 522 prepared advisory locations in `data/interim/incois_current_pfz.csv` and `.geojson`.
+- A FastAPI service for snapshot health, summary, and GeoJSON.
+- Ocean Conditions queries INCOIS Ocean State Forecast point time series for SST, surface current, mixed-layer depth, D20, wind, and waves. Each field includes a timestamp and is labelled as a model forecast.
+- Ocean Conditions also displays the latest daily INCOIS ABIS chlorophyll-a satellite map when the public product is available. INCOIS currently publishes this as a regional image; the app does not invent a selected-pixel concentration.
+- Responsive phone-first views for dashboard, finding zones, results, map, ocean conditions, insights, history, About, and Settings.
+- Optional device-location search; coordinates remain in the browser session and are not saved or sent to the API.
+- An advisory-concentration heat layer: equal-weight advisory coordinates are shaded by point density. It is not a probability surface.
+- A keyless OpenStreetMap base layer with attribution. Internet is required for map tiles and Leaflet resources.
+- The previous WIO catch/environment dataset remains in `data/raw/` and `data/processed/` as a separate reference/fallback. It is not used by the current page.
 
----
+See [`docs/data_sources.md`](docs/data_sources.md) for provenance and files, [`docs/dataset_audit.md`](docs/dataset_audit.md) for verification, and [`IMPLEMENTATION_PLAN.md`](IMPLEMENTATION_PLAN.md) for the staged plan.
 
-## 2. Repository Layout
-```
-OCEANIX/
-├─ README.md
-├─ requirements.txt
-├─ .gitignore
-├─ data/
-│   ├─ raw/            # Source files (immutable)
-│   ├─ interim/        # Cleaned / joined intermediate data
-│   └─ processed/      # Final model-ready dataset
-├─ docs/
-│   ├─ dataset_audit.md
-│   ├─ data_sources.md
-│   ├─ project_scope.md
-│   ├─ ml_plan.md
-│   ├─ ml_results.md
-│   └─ limitations.md
-├─ notebooks/          # Exploratory analysis
-├─ src/oceanix/
-│   ├─ data/           # Download, validation, alignment routines
-│   ├─ features/       # Feature engineering & preprocessing pipeline
-│   ├─ modeling/       # Model training, evaluation, artifact export
-│   └─ api/            # FastAPI application & Pydantic schemas
-├─ frontend/           # Responsive HTML/CSS/JS + Leaflet map
-├─ models/             # Exported pipeline & metadata (.joblib git-ignored)
-└─ tests/              # Automated unit and smoke tests
-    ├─ test_data_checks.py
-    ├─ test_model_smoke.py
-    └─ test_api.py
-```
+## Run locally
 
----
+Use Python 3.10 or newer. From the repository root:
 
-## 3. Quick Start & Setup
-
-### Environment Setup
-```bash
-# Clone the repository
-git clone https://github.com/arsenicparker/OCEANIX.git
-cd OCEANIX
-
-# Create and activate virtual environment
+```powershell
 python -m venv .venv
-# Windows:
-.venv\Scripts\activate
-# Linux/macOS:
-source .venv/bin/activate
-
-# Install dependencies
-pip install -r requirements.txt
+.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+python -m pip install -e .
+python -m uvicorn oceanix.api.main:app --app-dir src --host 0.0.0.0 --port 8000
 ```
 
----
+On the computer, open [http://127.0.0.1:8000](http://127.0.0.1:8000). On the phone, connect to the same Wi-Fi, then open `http://<computer-private-IP>:8000` (for example, `http://192.168.1.20:8000`). Find the private IP with `ipconfig` on Windows. Keep the server running while using the phone; this address is only for your local network and is not an internet deployment. If Windows Firewall blocks it, allow the Python server only for local-network devices on the active Wi-Fi; do not add router port forwarding.
 
-## 4. Current Status
-- [x] Repository structure and initial configuration established.
-- [x] Milestone M1: Data Audit & Source Verification (Completed).
-- [x] Milestone M2: Dataset Preparation & Preprocessing (Completed).
-- [x] Milestone M3: Machine Learning Pipeline & Training (Completed).
-- [x] Milestone M4: Model Evaluation & Limitations Reporting (Completed).
-- [x] Milestone M5: FastAPI Service & Schemas (Completed).
-- [x] Milestone M6: Frontend & Interactive Leaflet Map (Completed).
-- [x] Design Diagram added.
-- [x] Milestone M7: Integration, QA & End-to-End Testing (Completed).
-- [x] Milestone M8: Final Deliverables & Demonstration (Completed).
+API health is at `/health`; the current INCOIS data summary is at `/api/pfz/current/summary`; the GeoJSON is at `/api/pfz/current`; and selected-location environmental data is at `/api/environment/current?lat=13&lon=74.5`.
 
----
+Browser geolocation requires a secure context. On a phone using a local `http://<computer-private-IP>` address, choose one of the official advisory points for environmental readings. Device GPS will be available after deploying the app behind HTTPS.
 
----
+The app uses external Leaflet, Leaflet.heat, and OpenStreetMap resources, but no map API key. If map tiles or the heat-layer library do not load, the app displays a status message and retains the advisory search/list data.
 
-## 5. Running the Application Locally
-```bash
-# Start FastAPI and web application
-python -m uvicorn oceanix.api.main:app --host 127.0.0.1 --port 8000 --reload
+## Rebuild the prepared INCOIS snapshot
 
-# Open web prototype in browser
-# http://127.0.0.1:8000/
-# API Documentation (Swagger UI)
-# http://127.0.0.1:8000/docs
+Raw exports are immutable. The current prepared files were produced with:
+
+```powershell
+python -c "from oceanix.data.prepare import prepare_incois_current_snapshot; prepare_incois_current_snapshot('data/raw', 'data/interim', 'data/raw/INCOIS_PFZ_sector_manifest_2026-11-09.json')"
+python src/oceanix/data/audit.py --data-dir data/raw --output data/processed/dataset_audit.json
 ```
 
----
+The script combines the dated sector exports present in the manifest, validates coordinates, skips spreadsheet footers, and writes the CSV and GeoJSON. To refresh after 10 Nov 2026, collect a new official snapshot and create a new dated manifest first; the existing snapshot is not a live feed.
 
-## 6. Full reproducibility guide
-To reproduce the entire workflow from a clean clone:
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/arsenicparker/OCEANIX.git
-   cd OCEANIX
-   ```
-2. **Create a virtual environment & install dependencies**
-   ```bash
-   python -m venv .venv
-   # Windows:
-   .venv\Scripts\activate
-   # Linux/macOS:
-   source .venv/bin/activate
-   pip install -r requirements.txt
-   ```
-3. **Run the test suite** to verify the data‑audit, model, API and UI layers:
-   ```bash
-   pytest -q
-   ```
-4. **Start the FastAPI service** (as shown above) and open the UI at `http://127.0.0.1:8000/`.
-5. **Optional**: Review the architecture diagram – see `docs/design_diagram.md`.
+## Verification
 
----
+```powershell
+python -m pytest -q --basetemp .pytest_cache/test-tmp
+```
 
-## 7. Architecture diagram
-A high‑level flow of data from raw sources to the interactive UI is visualised in [design_diagram.md](docs/design_diagram.md).
+Tests cover source hashes and row alignment, current snapshot parsing, API responses, filters’ supporting data, and the keyless map configuration. The AIML model stage is intentionally gated: one INCOIS snapshot cannot train a supervised model. See [`docs/ml_plan.md`](docs/ml_plan.md).
 
+## Project boundaries
 
-
+- INCOIS points are official advisory locations, not OCEANIX model estimates.
+- An unlisted point does not mean fish are absent.
+- The current app is not a catch guarantee, safety assessment, or navigation tool.
+- The existing NOAA/NCEI data is Western Indian Ocean skipjack data and cannot validate a Karnataka coastal model.
+- Historical INCOIS PFZ labels and matched environmental measurements must pass an audit before AIML training starts.

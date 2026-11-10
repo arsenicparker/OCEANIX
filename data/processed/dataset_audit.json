@@ -1,0 +1,337 @@
+{
+  "audit_version": "1.0",
+  "incois_pfz_route_a": {
+    "status": "PRESENT",
+    "dataset_name": "INCOIS Karnataka PFZ Advisory (Single Forecast)",
+    "filepath": "data\\raw\\PfzForecast_KARNATAKA.xls",
+    "file_size_bytes": 8704,
+    "sha256": "2d532086e0601a9875fb32ebc435844c5c4c8e6fc1c91b1f8dc3f6871d436378",
+    "raw_rows": 31,
+    "advisory_point_count": 24,
+    "forecast_validity": "4 Oct 2026 to 5 Oct 2026",
+    "coastal_stations": [
+      "Belekeri",
+      "Sadasguvgarg",
+      "Karwar",
+      "Majali",
+      "Gangavali",
+      "Navayatkere",
+      "Kasarkod",
+      "Honavar",
+      "Tadri",
+      "Karki",
+      "Kumta Pt",
+      "Dhareshvar",
+      "Baindur",
+      "Navunda",
+      "Bhatkal",
+      "Hangarkatta",
+      "Gangoli",
+      "Shirali",
+      "Coondapoor (gangoli)",
+      "Kota",
+      "Malpe",
+      "Udiyavara",
+      "Kapu",
+      "Mulki"
+    ],
+    "geographic_bounds": {
+      "lat_min": 13.176666666666666,
+      "lat_max": 14.721666666666668,
+      "lon_min": 73.48194444444445,
+      "lon_max": 74.51583333333333
+    },
+    "target_validity": {
+      "target_type": "Advisory Presence Only (Positive points only)",
+      "negative_samples_present": false,
+      "environmental_features_present": false,
+      "supervised_ml_ready": false,
+      "decision": "NO-GO for standalone ML training; GO for UI advisory parsing & map rendering"
+    }
+  },
+  "incois_current_snapshot": {
+    "status": "PASS",
+    "dataset_name": "INCOIS Potential Fishing Zone current-sector snapshot",
+    "snapshot_date": "2026-11-09",
+    "source_updated_at": "Mon Nov 09 16:50:51 IST 2026",
+    "forecast_validity": "SATELLITE DATA SHOWS LIKELY AVAILABILITY OF FISH STOCK TILL  10 NOV 2026",
+    "source": "https://www.incois.gov.in/MarineFisheries/PfzAdvisory",
+    "coordinate_format": "DMS (higher precision)",
+    "sector_file_count": 14,
+    "prepared_point_count": 522,
+    "prepared_sector_count": 14,
+    "sectors": [
+      "Andaman",
+      "Goa",
+      "Gujarat",
+      "Karnataka",
+      "Kerala",
+      "Lakshadweep",
+      "Maharashtra",
+      "Nicobar",
+      "North Andhra Pradesh",
+      "North Tamil Nadu",
+      "Odisha",
+      "South Andhra Pradesh",
+      "South Tamil Nadu",
+      "West Bengal"
+    ],
+    "coordinate_bounds": {
+      "latitude_min": 6.781111,
+      "latitude_max": 22.860278,
+      "longitude_min": 68.66,
+      "longitude_max": 93.639722
+    },
+    "missing_files": [],
+    "checksum_mismatches": [],
+    "files": [
+      {
+        "file": "INCOIS_PFZ_SEC001_2026-11-09.xls",
+        "expected_sha256": "E11CFEFCF76E287976E523264FD6668D8F7BD322AEC063A67E8CEDC257AAD64A",
+        "actual_sha256": "e11cfefcf76e287976e523264fd6668d8f7bd322aec063a67e8cedc257aad64a",
+        "checksum_pass": true,
+        "bytes": 19968
+      },
+      {
+        "file": "INCOIS_PFZ_SEC002_2026-11-09.xls",
+        "expected_sha256": "C2592AA9612D0B05359A7141988808C2442BDB6466E1854B04A1DDBEB3E305E7",
+        "actual_sha256": "c2592aa9612d0b05359a7141988808c2442bdb6466e1854b04a1ddbeb3e305e7",
+        "checksum_pass": true,
+        "bytes": 22528
+      },
+      {
+        "file": "INCOIS_PFZ_SEC003_2026-11-09.xls",
+        "expected_sha256": "8A92A6C5B1874B6FD55AF25CA52C3395CDDB937E39272D5BC210D4B7BE40C76C",
+        "actual_sha256": "8a92a6c5b1874b6fd55af25ca52c3395cddb937e39272d5bc210d4b7be40c76c",
+        "checksum_pass": true,
+        "bytes": 6144
+      },
+      {
+        "file": "INCOIS_PFZ_SEC004_2026-11-09.xls",
+        "expected_sha256": "F79C1EC2E0D63E5EA50A8FA90D242014EA500D6FE48A5F6B508CF43B92E89648",
+        "actual_sha256": "f79c1ec2e0d63e5ea50a8fa90d242014ea500d6fe48a5f6b508cf43b92e89648",
+        "checksum_pass": true,
+        "bytes": 7680
+      },
+      {
+        "file": "INCOIS_PFZ_SEC005_2026-11-09.xls",
+        "expected_sha256": "0137CDE467098BFC15AA32754771071D8C47BE4CB70999C0996F302C20514330",
+        "actual_sha256": "0137cde467098bfc15aa32754771071d8c47be4cb70999c0996f302c20514330",
+        "checksum_pass": true,
+        "bytes": 11264
+      },
+      {
+        "file": "INCOIS_PFZ_SEC006_2026-11-09.xls",
+        "expected_sha256": "1144768FAF838291EB61413A3AA9D4A9EBE524295D03C5B731A81A03ED6B663A",
+        "actual_sha256": "1144768faf838291eb61413a3aa9d4a9ebe524295d03c5b731a81a03ed6b663a",
+        "checksum_pass": true,
+        "bytes": 7680
+      },
+      {
+        "file": "INCOIS_PFZ_SEC007_2026-11-09.xls",
+        "expected_sha256": "04F9693CA58813F3AD652BAF83FC15E230100D759A1866045D172D2149C8B8C9",
+        "actual_sha256": "04f9693ca58813f3ad652baf83fc15e230100d759a1866045d172d2149c8b8c9",
+        "checksum_pass": true,
+        "bytes": 13824
+      },
+      {
+        "file": "INCOIS_PFZ_SEC008_2026-11-09.xls",
+        "expected_sha256": "C99A099C50CE4A5C3EE2B3EC869692ED6D17C29034786528599C9E6DADE23E04",
+        "actual_sha256": "c99a099c50ce4a5c3ee2b3ec869692ed6d17c29034786528599c9e6dade23e04",
+        "checksum_pass": true,
+        "bytes": 8192
+      },
+      {
+        "file": "INCOIS_PFZ_SEC009_2026-11-09.xls",
+        "expected_sha256": "78589237CFC459CAD6404974571DCAEE11C7E2F53C0C113EECE8E55235BF59E7",
+        "actual_sha256": "78589237cfc459cad6404974571dcaee11c7e2f53c0c113eece8e55235bf59e7",
+        "checksum_pass": true,
+        "bytes": 10240
+      },
+      {
+        "file": "INCOIS_PFZ_SEC010_2026-11-09.xls",
+        "expected_sha256": "48DAA424A11AF176598883E6E9FA34B3010AAD1E9C058E56F8B9BD5A8568BB9A",
+        "actual_sha256": "48daa424a11af176598883e6e9fa34b3010aad1e9c058e56f8b9bd5a8568bb9a",
+        "checksum_pass": true,
+        "bytes": 19968
+      },
+      {
+        "file": "INCOIS_PFZ_SEC011_2026-11-09.xls",
+        "expected_sha256": "D3CE892B8ED04BB79671870F36D22F576774CF4EF8D386EE029EB5B51D0F0183",
+        "actual_sha256": "d3ce892b8ed04bb79671870f36d22f576774cf4ef8d386ee029eb5b51d0f0183",
+        "checksum_pass": true,
+        "bytes": 6656
+      },
+      {
+        "file": "INCOIS_PFZ_SEC012_2026-11-09.xls",
+        "expected_sha256": "920E36B29604578CE387DC727B807D1C763B8A77D178AE31AADD1D6EA232C742",
+        "actual_sha256": "920e36b29604578ce387dc727b807d1c763b8a77d178ae31aadd1d6ea232c742",
+        "checksum_pass": true,
+        "bytes": 6144
+      },
+      {
+        "file": "INCOIS_PFZ_SEC013_2026-11-09.xls",
+        "expected_sha256": "576BB1616B0B4A9589D5A262BD64D3C29D5576ACBAA838177A354411E5D4B5DB",
+        "actual_sha256": "576bb1616b0b4a9589d5a262bd64d3c29d5576acbaa838177a354411e5d4b5db",
+        "checksum_pass": true,
+        "bytes": 7168
+      },
+      {
+        "file": "INCOIS_PFZ_SEC014_2026-11-09.xls",
+        "expected_sha256": "BC413482BCB5C81053056B7386CEC144CE7EB986127D448457380B0621F9D055",
+        "actual_sha256": "bc413482bcb5c81053056b7386cec144ce7eb986127d448457380b0621f9d055",
+        "checksum_pass": true,
+        "bytes": 6144
+      }
+    ],
+    "supervised_ml_ready": false,
+    "ml_readiness_note": "One dated advisory snapshot provides positive advisory locations only. Historical labels and matched environmental features are still required for supervised ML."
+  },
+  "noaa_0306675_route_b": {
+    "status": "PRESENT",
+    "dataset_name": "NOAA/NCEI Accession 0306675 (Western Indian Ocean Skipjack Tuna & Environment)",
+    "files": {
+      "Catch_data.txt": {
+        "rows": 66520,
+        "columns": [
+          "ID",
+          "Lon",
+          "Lat",
+          "month",
+          "year",
+          "SKJ"
+        ],
+        "sha256": "4f9e4cdd8d8c65d55ef5c5fb460a43b3ea3cd35cecd2b00f305f576bc3da317c",
+        "size_bytes": 2164923
+      },
+      "Environmental_data.txt": {
+        "rows": 66520,
+        "columns": [
+          "ID",
+          "Lon",
+          "Lat",
+          "ph",
+          "nppv",
+          "phyc",
+          "chl",
+          "o2",
+          "so",
+          "mlotst",
+          "uo",
+          "vo",
+          "thetao",
+          "bottomT",
+          "zos",
+          "month",
+          "year"
+        ],
+        "sha256": "0613e8aeef0d9ee9ddf42634712341b7f312930ca5c21275e2affdbf1b61082a",
+        "size_bytes": 14889328
+      }
+    },
+    "time_coverage": {
+      "start_year": 2005,
+      "end_year": 2019,
+      "total_years": 15,
+      "temporal_resolution": "Monthly",
+      "annual_distribution_observed": {
+        "2005": 1161,
+        "2006": 1161,
+        "2007": 1387,
+        "2008": 1021,
+        "2009": 1013,
+        "2010": 1341,
+        "2011": 1241,
+        "2012": 1303,
+        "2013": 688,
+        "2014": 1644,
+        "2015": 1639,
+        "2016": 1607,
+        "2017": 1477,
+        "2018": 1658,
+        "2019": 1525
+      }
+    },
+    "geographic_bounds": {
+      "lon_min": 38.75,
+      "lon_max": 79.75,
+      "lat_min": -14.75,
+      "lat_max": 14.75,
+      "spatial_resolution": "0.5 degree grid",
+      "study_area": "Western Indian Ocean (WIO)"
+    },
+    "join_integrity": {
+      "join_keys": [
+        "ID",
+        "Lon",
+        "Lat",
+        "month",
+        "year"
+      ],
+      "catch_rows": 66520,
+      "env_rows": 66520,
+      "inner_join_matches": 66520,
+      "unmatched_rows": 0,
+      "alignment_pass": true
+    },
+    "target_analysis": {
+      "target_variable": "SKJ",
+      "description": "Skipjack tuna (Katsuwonus pelamis) catch biomass from IOTC records",
+      "unit": "Metric tons per month per grid cell",
+      "observed_records": 19866,
+      "unobserved_grid_projection_cells": 46654,
+      "statistics": {
+        "count": 19866,
+        "mean": 46.49462422916077,
+        "std": 58.45832555391889,
+        "min": 0.19,
+        "p25": 12.02,
+        "median": 26.9675,
+        "p75": 58.37375,
+        "max": 1395.19
+      }
+    },
+    "feature_coverage": {
+      "predictors": [
+        "ph",
+        "nppv",
+        "phyc",
+        "chl",
+        "o2",
+        "so",
+        "mlotst",
+        "uo",
+        "vo",
+        "thetao",
+        "bottomT",
+        "zos"
+      ],
+      "total_nulls_in_observed_records": {
+        "ID": 0,
+        "Lon": 0,
+        "Lat": 0,
+        "month": 0,
+        "year": 0,
+        "SKJ": 0,
+        "ph": 595,
+        "nppv": 3283,
+        "phyc": 595,
+        "chl": 595,
+        "o2": 595,
+        "so": 595,
+        "mlotst": 595,
+        "uo": 595,
+        "vo": 595,
+        "thetao": 595,
+        "bottomT": 595,
+        "zos": 595
+      }
+    },
+    "decision": "GO for Machine Learning (Western Indian Ocean Skipjack Tuna Catch/Suitability Task)"
+  },
+  "synthesis": {
+    "incois_current_data_decision": "GO for a dated, all-sector advisory data explorer; NO-GO for standalone supervised ML until historical INCOIS advisory labels and matched environmental features are acquired and audited.",
+    "noaa_0306675_decision": "Verified historical WIO skipjack dataset retained as a reference/fallback; it is not used by the INCOIS current-data prototype.",
+    "final_project_scope": "Build and test a small INCOIS PFZ data playground first. Keep official advisory data visually distinct from future OCEANIX model outputs."
+  }
+}
